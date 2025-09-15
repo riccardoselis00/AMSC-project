@@ -67,6 +67,16 @@ public:
         return I;
     }
 
+    // ----- I/O -----
+
+    static void lower_inplace(char* s);
+
+    //MatrixCOO(const std::string& filename); // throws on error
+    static MatrixCOO read_COO(const std::string& filename); // throws on error
+    
+    bool write_COO(const std::string& filename) const; // returns false on error
+
+
     // ----- Assembly -----
     /// Reserve space for nnz nonzeros.
     void reserve(Index nnz) { m_row.reserve(nnz); m_col.reserve(nnz); m_val.reserve(nnz); }

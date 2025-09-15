@@ -8,70 +8,83 @@
 
 #include "dd/algebra/matrixDense.hpp"
 
+#include "dd/algebra/matrixSparse.hpp"
+#include "dd/algebra/COO.hpp"
+#include "dd/algebra/CSR.hpp"
+#include "../tests/test_util.hpp"
+
+using ddtest::expect_true;
+using ddtest::expect_eq;
+using ddtest::expect_near;
+using ddtest::expect_throw;
+
+using dd::algebra::MatrixCOO;
+using dd::algebra::MatrixCSR;
+
 using dd::algebra::MatrixDense;
 
-// Simple test harness without macros. Each check increments g_tests and,
-// on failure, increments g_fail and reports the diagnostic.
-static int g_tests = 0;
-static int g_fail  = 0;
+// // Simple test harness without macros. Each check increments g_tests and,
+// // on failure, increments g_fail and reports the diagnostic.
+// static int g_tests = 0;
+// static int g_fail  = 0;
 
-// Report helpers
-static void expect_true(bool cond, const char* func, const char* expr)
-{
-    ++g_tests;
-    if (!cond) {
-        ++g_fail;
-        std::cerr << func << ": expect_true failed: " << expr << "\n";
-    }
-}
+// // Report helpers
+// static void expect_true(bool cond, const char* func, const char* expr)
+// {
+//     ++g_tests;
+//     if (!cond) {
+//         ++g_fail;
+//         std::cerr << func << ": expect_true failed: " << expr << "\n";
+//     }
+// }
 
-template<typename T, typename U>
-static void expect_eq(const T& a, const U& b,
-                      const char* func,
-                      const char* exprA,
-                      const char* exprB)
-{
-    ++g_tests;
-    if (!(a == b)) {
-        ++g_fail;
-        std::cerr << func << ": expect_eq failed: " << exprA << "=" << a
-                  << ", " << exprB << "=" << b << "\n";
-    }
-}
+// template<typename T, typename U>
+// static void expect_eq(const T& a, const U& b,
+//                       const char* func,
+//                       const char* exprA,
+//                       const char* exprB)
+// {
+//     ++g_tests;
+//     if (!(a == b)) {
+//         ++g_fail;
+//         std::cerr << func << ": expect_eq failed: " << exprA << "=" << a
+//                   << ", " << exprB << "=" << b << "\n";
+//     }
+// }
 
-static void expect_near(double a, double b, double eps,
-                        const char* func,
-                        const char* exprA,
-                        const char* exprB,
-                        const char* exprEps)
-{
-    ++g_tests;
-    if (std::fabs(a - b) > eps) {
-        ++g_fail;
-        std::cerr << func << ": expect_near failed: |" << exprA << "-" << exprB
-                  << "|>" << exprEps << " -> " << std::fabs(a - b) << "\n";
-    }
-}
+// static void expect_near(double a, double b, double eps,
+//                         const char* func,
+//                         const char* exprA,
+//                         const char* exprB,
+//                         const char* exprEps)
+// {
+//     ++g_tests;
+//     if (std::fabs(a - b) > eps) {
+//         ++g_fail;
+//         std::cerr << func << ": expect_near failed: |" << exprA << "-" << exprB
+//                   << "|>" << exprEps << " -> " << std::fabs(a - b) << "\n";
+//     }
+// }
 
-template<typename ExceptionType, typename Func>
-static void expect_throw(Func fn,
-                         const char* func,
-                         const char* expr)
-{
-    ++g_tests;
-    bool thrown = false;
-    try {
-        fn();
-    } catch (const ExceptionType&) {
-        thrown = true;
-    } catch (...) {
-        // ignore other exceptions
-    }
-    if (!thrown) {
-        ++g_fail;
-        std::cerr << func << ": expect_throw failed: " << expr << "\n";
-    }
-}
+// template<typename ExceptionType, typename Func>
+// static void expect_throw(Func fn,
+//                          const char* func,
+//                          const char* expr)
+// {
+//     ++g_tests;
+//     bool thrown = false;
+//     try {
+//         fn();
+//     } catch (const ExceptionType&) {
+//         thrown = true;
+//     } catch (...) {
+//         // ignore other exceptions
+//     }
+//     if (!thrown) {
+//         ++g_fail;
+//         std::cerr << func << ": expect_throw failed: " << expr << "\n";
+//     }
+// }
 
 // ----- Test cases -----
 
@@ -146,8 +159,8 @@ static void testGemv()
     std::vector<double> vy(2, 5.0);
     M.gemv(vx, vy, 1.0, 0.5);
     // M*[1,0,-1] = [-2, -2]; y = 1*[-2] +0.5*[5] = [-2+2.5]=0.5
-    expect_near(vy[0], 0.5, 1e-12, __func__, "vy[0]", "0.5", "1e-12");
-    expect_near(vy[1], 0.5, 1e-12, __func__, "vy[1]", "0.5", "1e-12");
+    expect_near(vy[0], 0.5, 1e-12, __func__, "vy[0]", "0.5");
+    expect_near(vy[1], 0.5, 1e-12, __func__, "vy[1]", "0.5");
     // gemv returning a vector
     auto w = M.gemv(std::vector<double>{1.0, 1.0, 1.0});
     expect_eq(w.size(), static_cast<std::size_t>(2), __func__, "w.size()", "2");
@@ -182,10 +195,10 @@ static void testGemm()
     MatrixDense::gemm(A, B, E, 0.5, 0.1);
     
     // expected: 0.5*[[19,22],[43,50]] + 0.1*[[1,0],[0,1]] = [[9.5+0.1,11+0],[21.5,25+0.1]]
-    expect_near(E(0,0), 9.6, 1e-12, __func__, "E(0,0)", "9.6", "1e-12");
-    expect_near(E(0,1), 11.0, 1e-12, __func__, "E(0,1)", "11.0", "1e-12");
-    expect_near(E(1,0), 21.5, 1e-12, __func__, "E(1,0)", "21.5", "1e-12");
-    expect_near(E(1,1), 25.1, 1e-12, __func__, "E(1,1)", "25.1", "1e-12");
+    expect_near(E(0,0), 9.6, 1e-12, __func__, "E(0,0)", "9.6");
+    expect_near(E(0,1), 11.0, 1e-12, __func__, "E(0,1)", "11.0");
+    expect_near(E(1,0), 21.5, 1e-12, __func__, "E(1,0)", "21.5");
+    expect_near(E(1,1), 25.1, 1e-12, __func__, "E(1,1)", "25.1");
     
     // mismatched shapes should throw
     MatrixDense F(2, 3);
@@ -245,7 +258,7 @@ static void testNorms()
 {
     MatrixDense M{{1, -2}, {3, -4}};
     double f = M.frobeniusNorm();
-    expect_near(f, std::sqrt(30.0), 1e-12, __func__, "f", "sqrt(30)", "1e-12");
+    expect_near(f, std::sqrt(30.0), 1e-12, __func__, "f", "sqrt(30)");
     double m = M.maxAbs();
     expect_eq(m, 4.0, __func__, "maxAbs", "4.0");
 }
@@ -428,6 +441,8 @@ int main()
     test_mm_array_integer_field();
     test_mm_array_errors();
 
-    std::cout << g_tests << " tests, " << g_fail << " failures\n";
-    return g_fail == 0 ? 0 : 1;
+    return ddtest::summarize_and_exit();
+
+    //std::cout << g_tests << " tests, " << g_fail << " failures\n";
+    //return g_fail == 0 ? 0 : 1;
 }

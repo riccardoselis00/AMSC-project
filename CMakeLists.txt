@@ -28,6 +28,10 @@ add_library(dd_algebra
     src/algebra/matrixSparse.cpp
     src/algebra/COO.cpp
     src/algebra/CSR.cpp
+    src/solver/solver.cpp
+    src/solver/pcg.cpp
+    src/preconditioner/preconditioner.cpp
+    src/preconditioner/identity.cpp
 )
 add_library(dd::algebra ALIAS dd_algebra)
 
@@ -57,10 +61,14 @@ if(DD_BUILD_TESTS)
   enable_testing()
   add_executable(testMatrixDense tests/testMatrixDense.cpp)
   add_executable(testMatrixSparse tests/testMatrixSparse.cpp)
+  add_executable(testSolver tests/testSolver.cpp)
   target_link_libraries(testMatrixDense PRIVATE dd_algebra)
   target_link_libraries(testMatrixSparse PRIVATE dd_algebra)
+  target_link_libraries(testSolver PRIVATE dd_algebra)
   add_test(NAME MatrixDense COMMAND testMatrixDense)
   add_test(NAME MatrixSparse COMMAND testMatrixSparse)
+  add_test(NAME Solver COMMAND testSolver)
+
 endif()
 
 # ================================================================
