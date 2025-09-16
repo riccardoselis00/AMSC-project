@@ -9,7 +9,6 @@
 #include "dd/solver/pcg.hpp"
 #include "dd/preconditioner/preconditioner.hpp"
 #include "dd/preconditioner/identity.hpp"
-
 #include "../tests/test_util.hpp"
 
 using ddtest::expect_true;

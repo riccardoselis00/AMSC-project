@@ -62,13 +62,15 @@ if(DD_BUILD_TESTS)
   add_executable(testMatrixDense tests/testMatrixDense.cpp)
   add_executable(testMatrixSparse tests/testMatrixSparse.cpp)
   add_executable(testSolver tests/testSolver.cpp)
+  add_executable(testBasic tests/test.cpp)
   target_link_libraries(testMatrixDense PRIVATE dd_algebra)
   target_link_libraries(testMatrixSparse PRIVATE dd_algebra)
   target_link_libraries(testSolver PRIVATE dd_algebra)
+  target_link_libraries(testBasic PRIVATE dd_algebra)
   add_test(NAME MatrixDense COMMAND testMatrixDense)
   add_test(NAME MatrixSparse COMMAND testMatrixSparse)
   add_test(NAME Solver COMMAND testSolver)
-
+  add_test(NAME Basic COMMAND testBasic)
 endif()
 
 # ================================================================

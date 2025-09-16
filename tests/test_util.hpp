@@ -91,6 +91,7 @@ inline void expect_throw(Fn&& fn,
 }
 
 
+
 inline int summarize_and_exit()
 {
     std::cout << g_tests() << " tests, " << g_fail() << " failures\n";
