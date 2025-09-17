@@ -7,6 +7,7 @@ This repo is the folder that contain the domain decompostions project valuable f
 
 ## Structure of the Projects
 
+``` 
 ├── include
 │   └── dd
 │       ├── algebra
@@ -43,3 +44,4 @@ This repo is the folder that contain the domain decompostions project valuable f
     └── test_util.hpp
 # AMSC-project
 Project valuable for AMSC exam
+```
