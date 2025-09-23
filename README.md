@@ -42,6 +42,4 @@ This repo is the folder that contain the domain decompostions project valuable f
     ├── testMatrixSparse.cpp
     ├── testSolver.cpp
     └── test_util.hpp
-# AMSC-project
-Project valuable for AMSC exam
 ```

@@ -42,17 +42,12 @@ std::size_t PCGSolver::solve(const std::vector<Scalar>& b,
 
     if (converged_) return 0;
 
-    // z0 = M^{-1} r0  (or identity if no preconditioner set)
+    // z0 = M^{-1} r0
     if (M_) M_->apply(r, z); else z = r;
     p = z;
     double rho = dot(r, z);
     if (std::abs(rho) == 0.0)
         throw std::runtime_error("PCG breakdown: rho == 0");
-
-    // const std::size_t maxit = maxIters();
-    // const double tol = tolerance();
-
-    // for (its_ = 1; its_ <= maxit; ++its_) {
 
     const std::size_t maxit = maxIters();
     const double tol = tolerance();
@@ -71,13 +66,9 @@ std::size_t PCGSolver::solve(const std::vector<Scalar>& b,
         // r_{k+1} = r_k - alpha A p_k
         for (std::size_t i = 0; i < n; ++i) r[i] -= alpha * Ap[i];
 
-        // last_rnorm_ = nrm2(r);
-        // last_rel_   = last_rnorm_ / r0_norm;
-        // if (last_rel_ <= tol) { converged_ = true; break; }
-
         last_rnorm_ = nrm2(r);
         last_rel_   = (r0_norm > 0.0) ? (last_rnorm_ / r0_norm) : 0.0;
-        ++its_;  // count a completed iteration
+        ++its_;
         if (last_rel_ <= tol) { converged_ = true; break; }
 
         // z_{k+1} = M^{-1} r_{k+1}

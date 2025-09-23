@@ -56,6 +56,8 @@ public:
 
     explicit MatrixCOO(const MatrixCSR& A);
 
+    static MatrixCOO Poisson2D(Index n);
+
     /// Create a zero matrix with given shape.
     static MatrixCOO Zero(Index rows, Index cols) { return MatrixCOO(rows, cols); }
     /// Create an identity matrix of size n×n.

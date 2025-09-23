@@ -32,6 +32,7 @@ add_library(dd_algebra
     src/solver/pcg.cpp
     src/preconditioner/preconditioner.cpp
     src/preconditioner/identity.cpp
+    src/preconditioner/block_jacobi.cpp
 )
 add_library(dd::algebra ALIAS dd_algebra)
 
@@ -39,6 +40,7 @@ target_include_directories(dd_algebra
     PUBLIC
         ${PROJECT_SOURCE_DIR}/include        # header location for clients
         ${PROJECT_SOURCE_DIR}/src/algebra    # keep internal header reachable for now
+        ${CMAKE_SOURCE_DIR}/utils
 )
 
 if(MSVC)
@@ -57,6 +59,7 @@ endif()
 # ================================================================
 # Tests
 # ================================================================
+
 if(DD_BUILD_TESTS)
   enable_testing()
   add_executable(testMatrixDense tests/testMatrixDense.cpp)
@@ -72,17 +75,9 @@ if(DD_BUILD_TESTS)
   add_test(NAME Solver COMMAND testSolver)
   add_test(NAME Basic COMMAND testBasic)
 endif()
-
 # ================================================================
-# Placeholders for future components (commented out)
-# ================================================================
-# add_library(dd_sparse ...)
-# add_library(dd_solvers ...)
-# add_library(dd_preconditioners ...)
-# add_library(dd_eigen ...)
-# add_executable(dd_usecase_poisson ...)
-# ...
 
+# Summary
 message(STATUS "\n--- Configuration Summary ---")
 message(STATUS "CMAKE_BUILD_TYPE      = ${CMAKE_BUILD_TYPE}")
 message(STATUS "DD_BUILD_TESTS        = ${DD_BUILD_TESTS}")

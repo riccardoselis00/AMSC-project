@@ -23,71 +23,6 @@ using dd::algebra::MatrixCSR;
 
 using dd::algebra::MatrixDense;
 
-// // Simple test harness without macros. Each check increments g_tests and,
-// // on failure, increments g_fail and reports the diagnostic.
-// static int g_tests = 0;
-// static int g_fail  = 0;
-
-// // Report helpers
-// static void expect_true(bool cond, const char* func, const char* expr)
-// {
-//     ++g_tests;
-//     if (!cond) {
-//         ++g_fail;
-//         std::cerr << func << ": expect_true failed: " << expr << "\n";
-//     }
-// }
-
-// template<typename T, typename U>
-// static void expect_eq(const T& a, const U& b,
-//                       const char* func,
-//                       const char* exprA,
-//                       const char* exprB)
-// {
-//     ++g_tests;
-//     if (!(a == b)) {
-//         ++g_fail;
-//         std::cerr << func << ": expect_eq failed: " << exprA << "=" << a
-//                   << ", " << exprB << "=" << b << "\n";
-//     }
-// }
-
-// static void expect_near(double a, double b, double eps,
-//                         const char* func,
-//                         const char* exprA,
-//                         const char* exprB,
-//                         const char* exprEps)
-// {
-//     ++g_tests;
-//     if (std::fabs(a - b) > eps) {
-//         ++g_fail;
-//         std::cerr << func << ": expect_near failed: |" << exprA << "-" << exprB
-//                   << "|>" << exprEps << " -> " << std::fabs(a - b) << "\n";
-//     }
-// }
-
-// template<typename ExceptionType, typename Func>
-// static void expect_throw(Func fn,
-//                          const char* func,
-//                          const char* expr)
-// {
-//     ++g_tests;
-//     bool thrown = false;
-//     try {
-//         fn();
-//     } catch (const ExceptionType&) {
-//         thrown = true;
-//     } catch (...) {
-//         // ignore other exceptions
-//     }
-//     if (!thrown) {
-//         ++g_fail;
-//         std::cerr << func << ": expect_throw failed: " << expr << "\n";
-//     }
-// }
-
-// ----- Test cases -----
-
 static void testConstructors()
 {
     // default
@@ -443,6 +378,4 @@ int main()
 
     return ddtest::summarize_and_exit();
 
-    //std::cout << g_tests << " tests, " << g_fail << " failures\n";
-    //return g_fail == 0 ? 0 : 1;
 }
