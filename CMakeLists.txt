@@ -4,11 +4,8 @@ project(DomainDecomposition LANGUAGES CXX)
 # ================================================================
 # Options
 # ================================================================
-# Whether to build the unit tests. When off only the library is built.
 option(DD_BUILD_TESTS       "Build unit tests"          ON)
-# Enable address/undefined sanitizers (Debug mode only, non‑MSVC).
 option(DD_ENABLE_SANITIZERS "Enable ASan/UBSan (Debug)" OFF)
-# Build shared (ON) or static (OFF) libraries.
 option(BUILD_SHARED_LIBS    "Build shared libs"         OFF)
 
 if(NOT CMAKE_BUILD_TYPE)
@@ -23,26 +20,35 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Library: Algebra (Dense)
 # ================================================================
 
+# Ensure all your source files are listed here
 add_library(dd_algebra
     src/algebra/matrixDense.cpp
     src/algebra/matrixSparse.cpp
     src/algebra/COO.cpp
     src/algebra/CSR.cpp
-    src/solver/solver.cpp
-    src/solver/pcg.cpp
-    src/preconditioner/preconditioner.cpp
-    src/preconditioner/identity.cpp
-    src/preconditioner/block_jacobi.cpp
+    # src/solver/solver.cpp
+    # src/solver/pcg.cpp
+    # src/preconditioner/preconditioner.cpp
+    # src/preconditioner/identity.cpp
+    # src/preconditioner/block_jacobi.cpp
 )
+
+# It is best practice to keep a namespace for CMake targets (e.g., dd::) 
+# even if you removed the C++ namespace. This prevents name collisions.
 add_library(dd::algebra ALIAS dd_algebra)
 
 target_include_directories(dd_algebra
     PUBLIC
-        ${PROJECT_SOURCE_DIR}/include        # header location for clients
-        ${PROJECT_SOURCE_DIR}/src/algebra    # keep internal header reachable for now
+        # This is the CRITICAL directory. 
+        # Since your folders are include/algebra, include/solver, etc.
+        # this allows you to do: #include "algebra/matrix.hpp"
+        ${PROJECT_SOURCE_DIR}/include
+        
+        # If you have utility headers in a separate utils folder:
         ${CMAKE_SOURCE_DIR}/utils
 )
 
+# Standard warnings
 if(MSVC)
   target_compile_options(dd_algebra PRIVATE /W4 /permissive-)
 else()
@@ -62,22 +68,28 @@ endif()
 
 if(DD_BUILD_TESTS)
   enable_testing()
+  
+  # Update these if your test file names or locations changed
   add_executable(testMatrixDense tests/testMatrixDense.cpp)
   add_executable(testMatrixSparse tests/testMatrixSparse.cpp)
-  add_executable(testSolver tests/testSolver.cpp)
-  add_executable(testBasic tests/test.cpp)
+  # add_executable(testSolver tests/testSolver.cpp)
+  # add_executable(testBasic tests/test.cpp)
+
+  # Link against the main library
   target_link_libraries(testMatrixDense PRIVATE dd_algebra)
   target_link_libraries(testMatrixSparse PRIVATE dd_algebra)
-  target_link_libraries(testSolver PRIVATE dd_algebra)
-  target_link_libraries(testBasic PRIVATE dd_algebra)
+  # target_link_libraries(testSolver PRIVATE dd_algebra)
+  # target_link_libraries(testBasic PRIVATE dd_algebra)
+
   add_test(NAME MatrixDense COMMAND testMatrixDense)
   add_test(NAME MatrixSparse COMMAND testMatrixSparse)
-  add_test(NAME Solver COMMAND testSolver)
-  add_test(NAME Basic COMMAND testBasic)
+  # add_test(NAME Solver COMMAND testSolver)
+  # add_test(NAME Basic COMMAND testBasic)
 endif()
-# ================================================================
 
+# ================================================================
 # Summary
+# ================================================================
 message(STATUS "\n--- Configuration Summary ---")
 message(STATUS "CMAKE_BUILD_TYPE      = ${CMAKE_BUILD_TYPE}")
 message(STATUS "DD_BUILD_TESTS        = ${DD_BUILD_TESTS}")

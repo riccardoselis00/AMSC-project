@@ -1,10 +1,8 @@
-#include "dd/algebra/CSR.hpp"
-#include "dd/algebra/COO.hpp"
+#include "algebra/CSR.hpp"
+#include "algebra/COO.hpp"
 
 #include <algorithm>
 #include <numeric>
-
-namespace dd { namespace algebra {
 
 MatrixCSR::MatrixCSR(const MatrixCOO& A)
 {
@@ -14,11 +12,11 @@ MatrixCSR::MatrixCSR(const MatrixCOO& A)
     m_ptr.assign(m_rows + 1, 0);
     m_col.resize(nz);
     m_val.resize(nz);
-    // Count nnz per row
+
     for (Index k = 0; k < nz; ++k) {
         ++m_ptr[A.rowIndex()[k]];
     }
-    // Prefix sum to get starting positions
+
     Index sum = 0;
     for (Index i = 0; i < m_rows; ++i) {
         Index cnt = m_ptr[i];
@@ -26,9 +24,9 @@ MatrixCSR::MatrixCSR(const MatrixCOO& A)
         sum += cnt;
     }
     m_ptr[m_rows] = sum;
-    // Copy of row pointer for insertion positions
+
     std::vector<Index> next = m_ptr;
-    // Scatter
+
     for (Index k = 0; k < nz; ++k) {
         Index r = A.rowIndex()[k];
         Index pos = next[r]++;
@@ -81,11 +79,11 @@ MatrixCSR MatrixCSR::transpose() const
     T.m_ptr.assign(T.m_rows + 1, 0);
     T.m_col.resize(m_val.size());
     T.m_val.resize(m_val.size());
-    // Count nnz per column (becomes row in transpose)
+
     for (Index k = 0; k < m_col.size(); ++k) {
         ++T.m_ptr[m_col[k]];
     }
-    // Prefix sum
+
     Index sum = 0;
     for (Index r = 0; r < T.m_rows; ++r) {
         Index cnt = T.m_ptr[r];
@@ -94,7 +92,7 @@ MatrixCSR MatrixCSR::transpose() const
     }
     T.m_ptr[T.m_rows] = sum;
     std::vector<Index> next = T.m_ptr;
-    // Scatter
+
     for (Index i = 0; i < m_rows; ++i) {
         for (Index k = m_ptr[i]; k < m_ptr[i+1]; ++k) {
             Index r = m_col[k];
@@ -105,5 +103,3 @@ MatrixCSR MatrixCSR::transpose() const
     }
     return T;
 }
-
-}} // namespace dd::algebra

@@ -4,22 +4,22 @@
 #include <stdexcept>
 #include <string>
 
-#include "dd/algebra/COO.hpp"
-#include "dd/algebra/CSR.hpp"
-#include "dd/solver/pcg.hpp"
-#include "dd/preconditioner/preconditioner.hpp"
-#include "dd/preconditioner/identity.hpp"
+#include "algebra/COO.hpp"
+#include "algebra/CSR.hpp"
+#include "solver/pcg.hpp"
+#include "preconditioner/preconditioner.hpp"
+#include "preconditioner/identity.hpp"
 #include "../tests/test_util.hpp"
 
-using ddtest::expect_true;
-using ddtest::expect_eq;
-using ddtest::expect_throw;
-using ddtest::expect_near;
+using expect_true;
+using expect_eq;
+using expect_throw;
+using expect_near;
 
-using dd::algebra::MatrixCOO;
-using dd::algebra::MatrixCSR;
-using dd::algebra::PCGSolver;
-using dd::algebra::IdentityPreconditioner;
+using algebra::MatrixCOO;
+using algebra::MatrixCSR;
+using solver::PCGSolver;
+using preconditioner::IdentityPreconditioner;
 
 static void testIdentityPreconditionerApply()
 {

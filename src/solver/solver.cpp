@@ -1,6 +1,16 @@
+#include "solver/solver.hpp"
 
-#include "dd/solver/solver.hpp"
+#include <stdio.h>
+#include <stdlib.h>
 
-namespace dd { namespace algebra {
+#include <iostream>
+
 Solver::~Solver() = default;
-}} // namespace dd::algebra
+
+
+void Solver::printConvergenceInfo(std::size_t iters, Scalar final_res) const
+{
+    std::cout << "[Solver] Converged in " << iters << " iterations\n"
+              << "          Final relative residual = " << final_res << "\n"
+              << "          Tolerance used          = " << tol_ << "\n";
+}

@@ -1,5 +1,5 @@
-
-#include "dd/preconditioner/preconditioner.hpp"
-namespace dd { namespace algebra {
-Preconditioner::~Preconditioner() = default;
-}} // namespace dd::algebra
+#include "preconditioner/preconditioner.hpp"
+namespace preconditioner 
+{
+    Preconditioner::~Preconditioner() = default;
+}

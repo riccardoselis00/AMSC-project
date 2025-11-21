@@ -1,5 +1,5 @@
-#include "dd/algebra/COO.hpp"
-#include "dd/algebra/CSR.hpp"
+#include "algebra/COO.hpp"
+#include "algebra/CSR.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -13,20 +13,18 @@
 #include <stdexcept>
 #include <string>
 
-namespace dd { namespace algebra {
-
 MatrixCOO::MatrixCOO(const MatrixCSR& A)
 : m_rows(A.rows()), m_cols(A.cols())
 {
     reserve(A.nnz());
 
-    const auto& ptr = A.rowPtr();    // size = m_rows + 1
-    const auto& col = A.colIndex();  // size = nnz
-    const auto& val = A.values();    // size = nnz
+    const auto& ptr = A.rowPtr();    
+    const auto& col = A.colIndex();  
+    const auto& val = A.values();    
 
     for (Index i = 0; i < m_rows; ++i) {
         for (Index p = ptr[i]; p < ptr[i + 1]; ++p) {
-            add(i, col[p], val[p]);  // push (i, j, a_ij) in COO
+            add(i, col[p], val[p]);  
         }
     }
 }
@@ -42,9 +40,9 @@ MatrixCOO MatrixCOO::Poisson2D(Index N)
     A.reserve(3 * static_cast<std::size_t>(N) - 2);
 
     for (Index i = 0; i < N; ++i) {
-        A.add(i, i, Scalar{2});          // diagonal
-        if (i > 0)     A.add(i, i-1, Scalar{-1}); // left neighbor
-        if (i+1 < N)   A.add(i, i+1, Scalar{-1}); // right neighbor
+        A.add(i, i, Scalar{2});          
+        if (i > 0)     A.add(i, i-1, Scalar{-1}); 
+        if (i+1 < N)   A.add(i, i+1, Scalar{-1}); 
     }
 
     return A;
@@ -52,13 +50,12 @@ MatrixCOO MatrixCOO::Poisson2D(Index N)
 
 void MatrixCOO::gemv(const Scalar* x, Scalar* y, Scalar alpha, Scalar beta) const
 {
-    // Scale y by beta
     if (beta == Scalar{0}) {
         for (Index i = 0; i < m_rows; ++i) y[i] = Scalar{0};
     } else if (beta != Scalar{1}) {
         for (Index i = 0; i < m_rows; ++i) y[i] *= beta;
     }
-    // Accumulate alpha * A * x
+
     for (Index k = 0; k < nnz(); ++k) {
         y[m_row[k]] += alpha * m_val[k] * x[m_col[k]];
     }
@@ -195,9 +192,6 @@ bool MatrixCOO::write_COO(const std::string& filename) const
         const double      v = m_val[k];
         std::fprintf(f, "%zu %zu %.17g\n", i, j, v);
     }
-
     std::fclose(f);
     return true;
 }
-
-}} // namespace dd::algebra

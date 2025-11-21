@@ -5,22 +5,17 @@
 #include <memory>
 #include <stdexcept>
 
-#include "dd/algebra/matrixSparse.hpp"
-// #include "dd/algebra/COO.hpp"
+#include "algebra/matrixSparse.hpp"
+#include "algebra/CSR.hpp"
+#include "algebra/COO.hpp"
 
-namespace dd { namespace algebra {
+class MatrixCOO;
 
-    class MatrixCOO;
-
-/**
- * @brief Sparse matrix in Compressed Sparse Row (CSR) format.
- *
- * Stores three arrays: row pointers (ptr), column indices (col) and
- * values (val). Provides efficient row traversal and matrix‑vector
- * multiplication. Constructible from COO.
- */
+    
 class MatrixCSR final : public MatrixSparse {
+
 public:
+
     using Scalar = MatrixSparse::Scalar;
     using Index  = MatrixSparse::Index;
 
@@ -28,8 +23,6 @@ public:
 
 
     MatrixCSR() = default;
-    
-    /// Direct constructor from ptr/col/val arrays (no copies). Validates sizes.
     
     MatrixCSR(Index rows, Index cols,
               std::vector<Index> ptr,
@@ -46,10 +39,8 @@ public:
         validateIndices_();
     }
 
-    /// Construct from a COO matrix. Performs conversion (duplicates not coalesced).
     explicit MatrixCSR(const MatrixCOO& A);
 
-    /// Create a zero matrix with given shape.
     static MatrixCSR Zero(Index rows, Index cols)
     {
         MatrixCSR Z;
@@ -59,7 +50,6 @@ public:
         return Z;
     }
 
-    /// Create an identity matrix of size n×n.
     static MatrixCSR Identity(Index n)
     {
         MatrixCSR I;
@@ -77,7 +67,6 @@ public:
         return I;
     }
 
-    // ----- MatrixSparse interface -----
     Index rows() const noexcept override { return m_rows; }
     Index cols() const noexcept override { return m_cols; }
     Index nnz()  const noexcept override { return static_cast<Index>(m_val.size()); }
@@ -102,21 +91,13 @@ public:
         return std::make_unique<MatrixCSR>(*this);
     }
 
-    // ----- Extra utilities -----
-    /// In-place scale all values by a factor.
+
     void scale(Scalar alpha) noexcept { for (auto& v : m_val) v *= alpha; }
 
-    /**
-     * @brief A = A + alpha * B, requires identical sparsity pattern.
-     *
-     * Patterns must match exactly (same ptr and col arrays). Throws otherwise.
-     */
     void axpySamePattern(Scalar alpha, const MatrixCSR& B);
 
-    /// Return the transpose of this matrix.
     MatrixCSR transpose() const;
 
-    /// Access the CSR arrays (read-only).
     const std::vector<Index>& rowPtr() const noexcept { return m_ptr; }
     const std::vector<Index>& colIndex() const noexcept { return m_col; }
     const std::vector<Scalar>& values()  const noexcept { return m_val; }
@@ -133,9 +114,7 @@ private:
     }
 
     Index m_rows{0}, m_cols{0};
-    std::vector<Index>  m_ptr; // size = rows+1
+    std::vector<Index>  m_ptr;
     std::vector<Index>  m_col;
     std::vector<Scalar> m_val;
 };
-
-}} // namespace dd::algebra

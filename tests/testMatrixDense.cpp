@@ -6,22 +6,12 @@
 #include <sstream>   // for std::stringstream
 #include <cstdio>    // for std::remove
 
-#include "dd/algebra/matrixDense.hpp"
+#include "algebra/matrixDense.hpp"
 
-#include "dd/algebra/matrixSparse.hpp"
-#include "dd/algebra/COO.hpp"
-#include "dd/algebra/CSR.hpp"
+#include "algebra/matrixSparse.hpp"
+#include "algebra/COO.hpp"
+#include "algebra/CSR.hpp"
 #include "../tests/test_util.hpp"
-
-using ddtest::expect_true;
-using ddtest::expect_eq;
-using ddtest::expect_near;
-using ddtest::expect_throw;
-
-using dd::algebra::MatrixCOO;
-using dd::algebra::MatrixCSR;
-
-using dd::algebra::MatrixDense;
 
 static void testConstructors()
 {
@@ -376,6 +366,6 @@ int main()
     test_mm_array_integer_field();
     test_mm_array_errors();
 
-    return ddtest::summarize_and_exit();
+    summarize_and_exit();
 
 }

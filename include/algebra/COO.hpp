@@ -5,34 +5,26 @@
 #include <memory>
 #include <stdexcept>
 
-#include "dd/algebra/matrixSparse.hpp"
-// #include "dd/algebra/CSR.hpp"
+#include "algebra/matrixSparse.hpp"
+#include "algebra/COO.hpp"
+#include "algebra/CSR.hpp"
 
-namespace dd { namespace algebra {
 
-    class MatrixCSR;
-/**
- * @brief Sparse matrix in Coordinate (COO) format.
- *
- * Stores three parallel arrays: row indices, column indices and values.
- * Provides basic algebraic operations similar to MatrixDense where
- * appropriate, along with operations specific to COO storage.
- */
+class MatrixCSR;
+
+
 class MatrixCOO final : public MatrixSparse {
 public:
     using Scalar = MatrixSparse::Scalar;
     using Index  = MatrixSparse::Index;
 
+
     using MatrixSparse::gemv;
 
-
-
-    /// Construct an empty 0×0 matrix.
     MatrixCOO() = default;
-    /// Construct an empty matrix with fixed dimension; no nonzeros initially.
+
     MatrixCOO(Index rows, Index cols) : m_rows(rows), m_cols(cols) {}
 
-    /// Construct from row/col/val arrays; sizes must match and all indices must be within bounds.
     MatrixCOO(Index rows, Index cols,
               std::vector<Index> row, std::vector<Index> col,
               std::vector<Scalar> val)
@@ -43,7 +35,6 @@ public:
         validateIndices_();
     }
 
-    /// Construct from an initializer list of triplets { {i,j,v}, ... } and optional shape.
     MatrixCOO(Index rows, Index cols, std::initializer_list<std::tuple<Index,Index,Scalar>> triplets)
         : m_rows(rows), m_cols(cols)
     {
@@ -58,9 +49,8 @@ public:
 
     static MatrixCOO Poisson2D(Index n);
 
-    /// Create a zero matrix with given shape.
     static MatrixCOO Zero(Index rows, Index cols) { return MatrixCOO(rows, cols); }
-    /// Create an identity matrix of size n×n.
+
     static MatrixCOO Identity(Index n)
     {
         MatrixCOO I(n, n);
@@ -69,20 +59,14 @@ public:
         return I;
     }
 
-    // ----- I/O -----
-
     static void lower_inplace(char* s);
 
-    //MatrixCOO(const std::string& filename); // throws on error
-    static MatrixCOO read_COO(const std::string& filename); // throws on error
+    static MatrixCOO read_COO(const std::string& filename); 
     
-    bool write_COO(const std::string& filename) const; // returns false on error
+    bool write_COO(const std::string& filename) const; 
 
-
-    // ----- Assembly -----
-    /// Reserve space for nnz nonzeros.
     void reserve(Index nnz) { m_row.reserve(nnz); m_col.reserve(nnz); m_val.reserve(nnz); }
-    /// Append a nonzero entry (i,j) = v. Throws if i>=rows or j>=cols.
+
     void add(Index i, Index j, Scalar v)
     {
         if (i >= m_rows || j >= m_cols)
@@ -92,7 +76,6 @@ public:
         m_val.push_back(v);
     }
 
-    // ----- MatrixSparse interface -----
     Index rows() const noexcept override { return m_rows; }
     Index cols() const noexcept override { return m_cols; }
     Index nnz()  const noexcept override { return static_cast<Index>(m_val.size()); }
@@ -113,16 +96,8 @@ public:
         return std::make_unique<MatrixCOO>(*this);
     }
 
-    // ----- Extra utilities -----
-    /// In-place scale all values by a factor.
     void scale(Scalar alpha) noexcept { for (auto& v : m_val) v *= alpha; }
 
-    /**
-     * @brief A = A + alpha * B. Pattern is not required to match; duplicates are not coalesced.
-     *
-     * Complexity is O(nnz(A) + nnz(B)). Duplicated entries will remain and
-     * affect subsequent operations accordingly.
-     */
     void axpy(Scalar alpha, const MatrixCOO& B)
     {
         if (m_rows != B.m_rows || m_cols != B.m_cols)
@@ -133,17 +108,14 @@ public:
         }
     }
 
-    /// A = A + alpha * B, but requires identical sparsity pattern (same row/col arrays).
     void axpySamePattern(Scalar alpha, const MatrixCOO& B);
 
-    /// Return the transpose of this matrix.
     MatrixCOO transpose() const;
 
-    /// Access raw row indices.
     const std::vector<Index>& rowIndex() const noexcept { return m_row; }
-    /// Access raw col indices.
+
     const std::vector<Index>& colIndex() const noexcept { return m_col; }
-    /// Access raw values.
+
     const std::vector<Scalar>& values()  const noexcept { return m_val; }
 
 private:
@@ -160,5 +132,3 @@ private:
     std::vector<Index>  m_col;
     std::vector<Scalar> m_val;
 };
-
-}} // namespace dd::algebra

@@ -5,17 +5,10 @@
 #include <stdexcept>
 #include <cstdio>
 
-#include "dd/algebra/matrixSparse.hpp"
-#include "dd/algebra/COO.hpp"
-#include "dd/algebra/CSR.hpp"
+#include "algebra/matrixSparse.hpp"
+#include "algebra/COO.hpp"
+#include "algebra/CSR.hpp"
 #include "../tests/test_util.hpp"
-
-using ddtest::expect_true;
-using ddtest::expect_eq;
-using ddtest::expect_near;
-
-using dd::algebra::MatrixCOO;
-using dd::algebra::MatrixCSR;
 
 static MatrixCOO build_coo_example()
 {
@@ -158,7 +151,6 @@ static void test_csr_scale_and_axpySamePattern()
 
 static void test_csr_zero_and_identity()
 {
-    using namespace dd::algebra;
 
     // Zero: just scale values to 0.0
     MatrixCSR A = build_csr_example();
@@ -199,6 +191,6 @@ int main()
     test_csr_scale_and_axpySamePattern();
     test_csr_zero_and_identity();
 
-    return ddtest::summarize_and_exit();
+    summarize_and_exit();
     
 }

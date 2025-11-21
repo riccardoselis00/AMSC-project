@@ -1,4 +1,4 @@
-#include "dd/algebra/matrixDense.hpp"
+#include "algebra/matrixDense.hpp"
 #include <sstream>
 #include <cmath>
 #include <algorithm>
@@ -6,7 +6,6 @@
 #include <cctype>
 #include <limits>
 
-namespace dd { namespace algebra {
 
 MatrixDense::MatrixDense(Index rows, Index cols, Scalar init_value)
     : m_rows(rows), m_cols(cols), m_data(rows * cols, init_value)
@@ -89,7 +88,7 @@ void MatrixDense::resize(Index rows, Index cols, bool keep, Scalar pad_value)
 
 void MatrixDense::gemv(const Scalar* x, Scalar* y, Scalar alpha, Scalar beta) const noexcept
 {
-    // y = alpha*A*x + beta*y (naive row‑major implementation)
+
     for (Index i = 0; i < m_rows; ++i) {
         const Scalar* row = &m_data[i * m_cols];
         Scalar sum = 0.0;
@@ -125,14 +124,14 @@ void MatrixDense::gemm(const MatrixDense& A, const MatrixDense& B, MatrixDense& 
         throw std::runtime_error("gemm: inner dimensions mismatch");
     if (C.m_rows != A.m_rows || C.m_cols != B.m_cols)
         throw std::runtime_error("gemm: C has wrong shape");
-    // Scale existing C by beta
+
     if (beta == Scalar{0}) {
         std::fill(C.m_data.begin(), C.m_data.end(), Scalar{0});
     } else if (beta != Scalar{1}) {
         for (auto& v : C.m_data)
             v *= beta;
     }
-    // Add alpha*A*B
+
     for (Index i = 0; i < A.m_rows; ++i) {
         const Scalar* Ai = &A.m_data[i * A.m_cols];
         Scalar* Ci = &C.m_data[i * C.m_cols];
@@ -247,13 +246,12 @@ MatrixDense MatrixDense::block(Index i0, Index j0, Index r, Index c) const
     return B;
 }
 
-// case-insensitive compare
+
 static std::string tolower_copy(std::string s) {
     for (auto& c : s) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
     return s;
 }
 
-// Trim leading/trailing spaces (basic)
 static std::string trim(const std::string& s) {
     size_t a = s.find_first_not_of(" \t\r\n");
     if (a == std::string::npos) return "";
@@ -272,14 +270,13 @@ MatrixDense MatrixDense::from_mm_array_file(const std::string& filename)
 MatrixDense MatrixDense::from_mm_array_stream(std::istream& is)
 {
     std::string line;
-    // 1) Header line
     if (!std::getline(is, line))
         throw std::runtime_error("from_mm_array_stream: empty input");
     auto header = trim(line);
     auto header_lc = tolower_copy(header);
     if (header_lc.rfind("%%matrixmarket", 0) != 0)
         throw std::runtime_error("from_mm_array_stream: missing '%%MatrixMarket' header");
-    // Parse the header tokens
+
     std::istringstream hs(header);
     std::string tag, kind, fmt, field, sym;
     hs >> tag >> kind >> fmt >> field >> sym;
@@ -295,12 +292,11 @@ MatrixDense MatrixDense::from_mm_array_stream(std::istream& is)
         throw std::runtime_error("from_mm_array_stream: unsupported symmetry (hermitian/complex not supported)");
     if (sym == "skewsymmetric") sym = "skew-symmetric";
 
-    // 2) Skip comment lines
     while (std::getline(is, line)) {
         if (!line.empty() && line[0] != '%') break;
     }
     if (!is) throw std::runtime_error("from_mm_array_stream: missing size line");
-    // 3) Read size
+
     std::istringstream ss(line);
     Index M = 0, N = 0;
     ss >> M >> N;
@@ -313,7 +309,7 @@ MatrixDense MatrixDense::from_mm_array_stream(std::istream& is)
     };
 
     if (sym == "general") {
-        // Read M*N scalars in column-major and scatter to row-major
+
         const std::size_t total = static_cast<std::size_t>(M) * static_cast<std::size_t>(N);
         std::vector<double> buf(total);
         for (std::size_t k = 0; k < total; ++k) read_scalar(buf[k]);
@@ -325,7 +321,7 @@ MatrixDense MatrixDense::from_mm_array_stream(std::istream& is)
         return A;
     } else if (sym == "symmetric" || sym == "skew-symmetric") {
         if (M != N) throw std::runtime_error("from_mm_array_stream: symmetry requires square matrix");
-        // Triangular data, column-major lower (i=j..M-1)
+
         const bool skew = (sym == "skew-symmetric");
         const std::size_t T = skew
             ? static_cast<std::size_t>(M) * static_cast<std::size_t>(M - 1) / 2
@@ -336,7 +332,7 @@ MatrixDense MatrixDense::from_mm_array_stream(std::istream& is)
         std::size_t k = 0;
         for (Index j = 0; j < N; ++j) {
             for (Index i = j; i < M; ++i) {
-                if (skew && i == j) continue; // no diagonal in skew-symmetric
+                if (skew && i == j) continue; 
                 const double v = tri[k++];
                 A(i, j) = v;
                 if (i == j) {
@@ -382,17 +378,12 @@ bool MatrixDense::to_mm_array_stream(std::ostream& os, const std::string& symmet
         return static_cast<bool>(os);
     }
 
-    // symmetric or skew-symmetric: lower triangle by columns
     const bool skew = (sym == "skew-symmetric");
     for (Index j = 0; j < N; ++j) {
         for (Index i = j; i < M; ++i) {
-            if (skew && i == j) continue; // diagonal omitted (implicitly zero)
+            if (skew && i == j) continue; 
             os << (*this)(i, j) << "\n";
         }
     }
     return static_cast<bool>(os);
 }
-
-
-
-}} // namespace dd::algebra

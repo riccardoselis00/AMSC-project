@@ -1,10 +1,9 @@
-#include "dd/algebra/matrixSparse.hpp"
+#include "algebra/matrixSparse.hpp"
 
 #include <cmath>
 #include <sstream>
 #include <algorithm>
 
-namespace dd { namespace algebra {
 
 void MatrixSparse::gemv(const std::vector<Scalar>& x, std::vector<Scalar>& y,
                         Scalar alpha, Scalar beta) const
@@ -54,5 +53,3 @@ std::string MatrixSparse::toString(std::size_t max_lines) const
     if (nnz() > printed) oss << "  ...\n";
     return oss.str();
 }
-
-}} // namespace dd::algebra
