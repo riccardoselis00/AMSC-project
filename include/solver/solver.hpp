@@ -1,9 +1,9 @@
+#pragma once
+
 #include <cstddef>
 #include <vector>
 #include "algebra/matrixSparse.hpp"
 #include "preconditioner/preconditioner.hpp"
-
-namespace solver {
 
 class Solver {
 public:
@@ -28,10 +28,10 @@ public:
                               std::vector<Scalar>& x) = 0;
 
     void printConvergenceInfo(std::size_t iters, Scalar final_res, Scalar tolerance) const;
+
 protected:
     const MatrixSparse& A_;
     Preconditioner*     M_{nullptr};
     std::size_t         maxIters_{10000};
     Scalar              tol_{1e-8};
 };
-} 

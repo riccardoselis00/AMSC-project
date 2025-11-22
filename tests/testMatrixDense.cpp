@@ -11,7 +11,7 @@
 #include "algebra/matrixSparse.hpp"
 #include "algebra/COO.hpp"
 #include "algebra/CSR.hpp"
-#include "../tests/test_util.hpp"
+#include "utils/test_util.hpp"
 
 static void testConstructors()
 {
@@ -303,7 +303,6 @@ static void test_mm_array_skew_roundtrip()
 
 static void test_mm_array_integer_field()
 {
-    // 2x3 integer general; column-major order on disk
     std::stringstream ss;
     ss << "%%MatrixMarket matrix array integer general\n"
        << "2 3\n"

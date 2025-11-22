@@ -1,9 +1,8 @@
+#pragma once
 
 #include <vector>
 #include <cstddef>
 #include "algebra/matrixSparse.hpp"
-
-namespace preconditioner {
 
 class Preconditioner {
 public:
@@ -17,5 +16,3 @@ public:
     virtual void apply(const std::vector<Scalar>& r,
                        std::vector<Scalar>& z) const = 0;
 };
-
-}

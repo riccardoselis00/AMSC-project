@@ -8,7 +8,7 @@
 #include "algebra/matrixSparse.hpp"
 #include "algebra/COO.hpp"
 #include "algebra/CSR.hpp"
-#include "../tests/test_util.hpp"
+#include "utils/test_util.hpp"
 
 static MatrixCOO build_coo_example()
 {

@@ -6,19 +6,6 @@
 #include <typeinfo>
 #include <stdexcept>
 
-namespace algebra {
-class MatrixSparse;
-class MatrixCSR;
-class MatrixCOO;
-} 
-
-namespace preconditioner {
-
-using Index = MatrixSparse::Index;
-using Scalar = MatrixSparse::Scalar;
-
-using algebra::MatrixCSR;
-using algebra::MatrixCOO;
 
 BlockJacobi::BlockJacobi(int nparts)
     : m_nparts(nparts), m_n(0) {
@@ -100,6 +87,4 @@ void BlockJacobi::apply(const std::vector<double>& r,
       z[static_cast<std::size_t>(i)] = m_inv_diag[static_cast<std::size_t>(i)] * r[static_cast<std::size_t>(i)];
     }
   }
-}
-
 }

@@ -26,11 +26,11 @@ add_library(dd_algebra
     src/algebra/matrixSparse.cpp
     src/algebra/COO.cpp
     src/algebra/CSR.cpp
-    # src/solver/solver.cpp
-    # src/solver/pcg.cpp
-    # src/preconditioner/preconditioner.cpp
-    # src/preconditioner/identity.cpp
-    # src/preconditioner/block_jacobi.cpp
+    src/solver/solver.cpp
+    src/solver/pcg.cpp
+    src/preconditioner/preconditioner.cpp
+    src/preconditioner/identity.cpp
+    src/preconditioner/block_jacobi.cpp
 )
 
 # It is best practice to keep a namespace for CMake targets (e.g., dd::) 
@@ -72,19 +72,19 @@ if(DD_BUILD_TESTS)
   # Update these if your test file names or locations changed
   add_executable(testMatrixDense tests/testMatrixDense.cpp)
   add_executable(testMatrixSparse tests/testMatrixSparse.cpp)
-  # add_executable(testSolver tests/testSolver.cpp)
-  # add_executable(testBasic tests/test.cpp)
+  add_executable(testSolver tests/testSolver.cpp)
+  add_executable(testPreconditioner tests/testPreconditioner.cpp)
 
   # Link against the main library
   target_link_libraries(testMatrixDense PRIVATE dd_algebra)
   target_link_libraries(testMatrixSparse PRIVATE dd_algebra)
-  # target_link_libraries(testSolver PRIVATE dd_algebra)
-  # target_link_libraries(testBasic PRIVATE dd_algebra)
+  target_link_libraries(testSolver PRIVATE dd_algebra)
+  target_link_libraries(testPreconditioner PRIVATE dd_algebra)
 
   add_test(NAME MatrixDense COMMAND testMatrixDense)
   add_test(NAME MatrixSparse COMMAND testMatrixSparse)
-  # add_test(NAME Solver COMMAND testSolver)
-  # add_test(NAME Basic COMMAND testBasic)
+  add_test(NAME Solver COMMAND testSolver)
+  add_test(NAME Preconditioner COMMAND testPreconditioner)
 endif()
 
 # ================================================================

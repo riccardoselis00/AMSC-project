@@ -1,7 +1,6 @@
+#pragma once
+
 #include "preconditioner.hpp"
-
-namespace preconditioner {
-
 
 class IdentityPreconditioner final : public Preconditioner {
 public:
@@ -17,5 +16,3 @@ public:
         z = r;
     }
 };
-
-}

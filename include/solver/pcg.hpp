@@ -2,8 +2,6 @@
 #pragma once
 #include "solver.hpp"
 
-namespace solver {
-
 class PCGSolver final : public Solver {
 public:
     using Solver::Solver; 
@@ -23,4 +21,3 @@ private:
     Scalar      last_rel_{1};
     bool        converged_{false};
 };
-}

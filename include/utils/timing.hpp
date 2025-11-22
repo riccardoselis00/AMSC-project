@@ -1,4 +1,15 @@
-
+#pragma once
+// dd/utils/timer.hpp — tiny, CPU‑only timing helpers for perf/scalability tests
+// Header‑only. C++17. No MPI, no OpenMP.
+// Measure wall time + CPU time; collect named sections; export CSV.
+// Example:
+//   dd::util::Registry reg;
+//   {
+//     DD_TIMED_SCOPE("assemble", reg);
+//     assemble();
+//   }
+//   reg.print_table();
+//   reg.to_csv("run.csv");
 
 #include <chrono>
 #include <cstdint>
@@ -10,13 +21,14 @@
 #include <sstream>
 #include <iomanip>
 
+#include <cstdlib>  // for std::getenv
+#include <utils/timing.hpp>
+
 #ifdef _WIN32
   #include <windows.h>
 #else
   #include <unistd.h>
 #endif
-
-namespace util {
 
 // Optional: capture a hostname for bookkeeping (purely local; no MPI).
 inline std::string hostname() {
@@ -162,14 +174,15 @@ inline double time_it(F&& fn, int warmup=1, int repeat=3) {
     return t.elapsed() / double(repeat);
 }
 
-} // namespace dd::util
-
+// -----------------------------------------------------------------------------
+// Helper macros for scoped timing
+// -----------------------------------------------------------------------------
 #define DD_CONCAT_INNER(a,b) a##b
 #define DD_CONCAT(a,b) DD_CONCAT_INNER(a,b)
 
 #define DD_TIMED_SCOPE(NAME, REGISTRY) \
-    dd::util::Scoped DD_CONCAT(_dd_scope_, __LINE__)(NAME, REGISTRY)
+    Scoped DD_CONCAT(_dd_scope_, __LINE__)(NAME, REGISTRY)
 
 #define DD_TIMED_SCOPE_X(NAME, REGISTRY, BYTES, ITERS, NOTE) \
-    dd::util::Scoped DD_CONCAT(_dd_scope_, __LINE__)(NAME, REGISTRY, BYTES, ITERS, NOTE)
+    Scoped DD_CONCAT(_dd_scope_, __LINE__)(NAME, REGISTRY, BYTES, ITERS, NOTE)
 

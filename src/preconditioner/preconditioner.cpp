@@ -1,5 +1,2 @@
 #include "preconditioner/preconditioner.hpp"
-namespace preconditioner 
-{
-    Preconditioner::~Preconditioner() = default;
-}
+Preconditioner::~Preconditioner() = default;

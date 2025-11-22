@@ -14,19 +14,14 @@
 #include "preconditioner/preconditioner.hpp"
 #include "preconditioner/identity.hpp"
 #include "preconditioner/block_jacobi.hpp"
-#include "timing.hpp"
-#include "../tests/test_util.hpp"
+#include "utils/timing.hpp"
+#include "utils/test_util.hpp"
 
-using algebra::MatrixCOO;
-using algebra::MatrixCSR;
-using solver::PCGSolver;
-using preconditioner::IdentityPreconditioner;           // REMOVED (no longer used)
-using preconditioner::BlockJacobi;                      // NEW
 
 int main()
 {
 
-    util::Registry reg;
+    Registry reg;
     int its = 0;
     std::cout << "Create The Matrix!" << std::endl;   
 

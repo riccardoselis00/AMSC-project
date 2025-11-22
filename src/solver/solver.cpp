@@ -8,9 +8,12 @@
 Solver::~Solver() = default;
 
 
-void Solver::printConvergenceInfo(std::size_t iters, Scalar final_res) const
+void Solver::printConvergenceInfo(std::size_t iters,
+                                  Scalar final_res,
+                                  Scalar tolerance) const
 {
-    std::cout << "[Solver] Converged in " << iters << " iterations\n"
-              << "          Final relative residual = " << final_res << "\n"
-              << "          Tolerance used          = " << tol_ << "\n";
+    std::cout << "Converged in " << iters
+              << " iterations, final residual = " << final_res
+              << ", tolerance = " << tolerance << "\n";
 }
+
