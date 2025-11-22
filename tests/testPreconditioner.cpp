@@ -25,7 +25,7 @@ int main()
     int its = 0;
     std::cout << "Create The Matrix!" << std::endl;   
 
-    MatrixCOO A = MatrixCOO::Poisson2D(1000);
+    MatrixCOO A = MatrixCOO::Poisson2D(10000);
 
     printf("Matrix created: %zu x %zu, nnz=%zu\n", A.rows(), A.cols(), A.nnz());
 
@@ -35,18 +35,18 @@ int main()
 
     // RHS
     //================================
-    for (size_t i = 0; i < b.size(); ++i)
-        b[i] = 1.0;
-
     // for (size_t i = 0; i < b.size(); ++i)
-    //     b[i] = (i & 1) ? -1.0 : 1.0; 
+    //     b[i] = 1.0;
+
+    for (size_t i = 0; i < b.size(); ++i)
+        b[i] = (i & 1) ? -1.0 : 1.0; 
     //================================
 
     std::cout << "Setting the preconditioner!" << std::endl;
 
     IdentityPreconditioner M;   
 
-    // BlockJacobi M(/*nparts=*/8);                        // NEW: choose a partition count (tune as you like)
+    // BlockJacobi M(8);                        // NEW: choose a partition count (tune as you like)
     // M.setup(A);                                         // NEW: build 1/diag(A) and partitions
 
     PCGSolver solver(A, &M);                            // (unchanged)

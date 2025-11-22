@@ -1,3 +1,6 @@
+#include <cmath>
+#include <limits>
+
 #include "algebra/matrixSparse.hpp" 
 #include "algebra/CSR.hpp"            
 #include "algebra/COO.hpp"           
@@ -6,49 +9,66 @@
 #include <typeinfo>
 #include <stdexcept>
 
+static void lu_factor_block(std::vector<double>& M, int n)
+{
+  for (int k = 0; k < n; ++k) {
+    double pivot = M[k*n + k];
+    if (std::abs(pivot) < 1e-15) {
+      throw std::runtime_error("BlockJacobi::lu_factor_block: zero/near-zero pivot");
+    }
+
+    for (int i = k + 1; i < n; ++i) {
+      M[i*n + k] /= pivot;
+      double lik = M[i*n + k];
+      for (int j = k + 1; j < n; ++j) {
+        M[i*n + j] -= lik * M[k*n + j];
+      }
+    }
+  }
+}
+
+static void lu_solve_block(const std::vector<double>& LU,
+                           int n,
+                           const double* b,
+                           double* x)
+{
+
+  std::vector<double> y(n);
+  for (int i = 0; i < n; ++i) {
+    double sum = b[i];
+    for (int j = 0; j < i; ++j) {
+      sum -= LU[i*n + j] * y[j];
+    }
+    y[i] = sum;
+  }
+
+  for (int i = n - 1; i >= 0; --i) {
+    double sum = y[i];
+    for (int j = i + 1; j < n; ++j) {
+      sum -= LU[i*n + j] * x[j];
+    }
+    double pivot = LU[i*n + i];
+    if (std::abs(pivot) < 1e-15) {
+      throw std::runtime_error("BlockJacobi::lu_solve_block: zero/near-zero pivot");
+    }
+    x[i] = sum / pivot;
+  }
+}
 
 BlockJacobi::BlockJacobi(int nparts)
-    : m_nparts(nparts), m_n(0) {
+  : m_nparts(nparts), m_n(0)
+{
   if (m_nparts <= 0) {
     throw std::invalid_argument("BlockJacobi: nparts must be > 0");
   }
 }
 
-static double diag_from_csr(const MatrixCSR& A, int i) {
-  using Index = MatrixSparse::Index;
-  const auto& rowPtr = A.rowPtr();
-  const auto& colIdx = A.colIndex();
-  const auto& vals   = A.values();
-
-  const Index ii  = static_cast<Index>(i);
-  const Index beg = rowPtr[ii];
-  const Index end = rowPtr[ii + 1];
-  for (Index k = beg; k < end; ++k) {
-    if (colIdx[k] == ii) return static_cast<double>(vals[k]);
-  }
-  return 0.0;
-}
-
-double BlockJacobi::diag_at(const MatrixSparse& A, int i) {
-  if (auto csr = dynamic_cast<const MatrixCSR*>(&A)) {
-    return diag_from_csr(*csr, i);
-  }
-
-  double aii = 0.0;
+void BlockJacobi::setup(const MatrixSparse& A)
+{
   using Index  = MatrixSparse::Index;
   using Scalar = MatrixSparse::Scalar;
 
-  A.forEachNZ([&](Index r, Index c, Scalar v) {
-    if (static_cast<int>(r) == i && static_cast<int>(c) == i) {
-      aii = static_cast<double>(v);
-    }
-  });
-  return aii;
-}
-
-
-void BlockJacobi::setup(const MatrixSparse& A) {
-  m_n = A.rows(); 
+  m_n = A.rows();
   if (A.cols() != m_n) {
     throw std::runtime_error("BlockJacobi::setup requires a square matrix.");
   }
@@ -64,27 +84,61 @@ void BlockJacobi::setup(const MatrixSparse& A) {
   }
   m_starts[static_cast<std::size_t>(m_nparts)] = static_cast<int>(m_n);
 
-  m_inv_diag.assign(static_cast<std::size_t>(m_n), 0.0);
-  for (Index i = 0; i < m_n; ++i) {
-    Scalar aii = diag_at(A, i);
-    if (aii == Scalar{0}) {
-      throw std::runtime_error("BlockJacobi::setup: zero diagonal at row " + std::to_string(i));
-    }
-    m_inv_diag[static_cast<std::size_t>(i)] = Scalar{1} / aii;
+  m_blockSizes.resize(static_cast<std::size_t>(m_nparts));
+  m_LUblocks.clear();
+  m_LUblocks.resize(static_cast<std::size_t>(m_nparts));
+
+  for (int p = 0; p < m_nparts; ++p) {
+    const int s  = m_starts[static_cast<std::size_t>(p)];
+    const int e  = m_starts[static_cast<std::size_t>(p + 1)];
+    const int bs = e - s;
+
+    m_blockSizes[static_cast<std::size_t>(p)] = bs;
+    auto& blockLU = m_LUblocks[static_cast<std::size_t>(p)];
+    blockLU.assign(static_cast<std::size_t>(bs * bs), 0.0);
+
+    A.forEachNZ([&](Index r, Index c, Scalar v) {
+      int ri = static_cast<int>(r);
+      int ci = static_cast<int>(c);
+      if (ri >= s && ri < e && ci >= s && ci < e) {
+        int lr = ri - s; 
+        int lc = ci - s; 
+        blockLU[lr * bs + lc] = static_cast<double>(v);
+      }
+    });
+
+    lu_factor_block(blockLU, bs);
   }
 }
 
 void BlockJacobi::apply(const std::vector<double>& r,
-                        std::vector<double>& z) const {
+                        std::vector<double>& z) const
+{
   if (r.size() != static_cast<std::size_t>(m_n)) {
     throw std::runtime_error("BlockJacobi::apply: r has wrong size");
   }
+
   z.assign(r.size(), 0.0);
+
   for (int p = 0; p < m_nparts; ++p) {
-    int s = m_starts[p];
-    int e = m_starts[p + 1];
-    for (int i = s; i < e; ++i) {
-      z[static_cast<std::size_t>(i)] = m_inv_diag[static_cast<std::size_t>(i)] * r[static_cast<std::size_t>(i)];
+    const int s  = m_starts[static_cast<std::size_t>(p)];
+    const int e  = m_starts[static_cast<std::size_t>(p + 1)];
+    const int bs = m_blockSizes[static_cast<std::size_t>(p)];
+
+    const auto& LU = m_LUblocks[static_cast<std::size_t>(p)];
+    if (bs <= 0) continue;
+
+    std::vector<double> rhs(bs);
+    std::vector<double> sol(bs);
+
+    for (int i = 0; i < bs; ++i) {
+      rhs[static_cast<std::size_t>(i)] = r[static_cast<std::size_t>(s + i)];
+    }
+
+    lu_solve_block(LU, bs, rhs.data(), sol.data());
+
+    for (int i = 0; i < bs; ++i) {
+      z[static_cast<std::size_t>(s + i)] = sol[static_cast<std::size_t>(i)];
     }
   }
 }
