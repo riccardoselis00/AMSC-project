@@ -24,6 +24,7 @@ private:
   std::vector<int> m_starts;
 
   std::vector<int>                 m_blockSizes;
+  
   std::vector<std::vector<double>> m_LUblocks; 
 
 };

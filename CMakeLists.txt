@@ -32,6 +32,7 @@ add_library(dd_algebra
     src/preconditioner/identity.cpp
     src/preconditioner/block_jacobi.cpp
     src/preconditioner/diagonal_jacobi.cpp
+    src/preconditioner/additive_schwarz.cpp
 )
 
 # It is best practice to keep a namespace for CMake targets (e.g., dd::) 
