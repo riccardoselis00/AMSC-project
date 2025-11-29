@@ -1,3 +1,22 @@
+# cmake_minimum_required(VERSION 3.20)
+# project(DomainDecomposition LANGUAGES CXX)
+
+# # ================================================================
+# # Options
+# # ================================================================
+# option(DD_BUILD_TESTS       "Build unit tests"          ON)
+# option(DD_ENABLE_SANITIZERS "Enable ASan/UBSan (Debug)" OFF)
+# option(BUILD_SHARED_LIBS    "Build shared libs"         OFF)
+
+# if(NOT CMAKE_BUILD_TYPE)
+#   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+# endif()
+
+# set(CMAKE_CXX_STANDARD 20)
+# set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(CMAKE_CXX_EXTENSIONS OFF)
+
+
 cmake_minimum_required(VERSION 3.20)
 project(DomainDecomposition LANGUAGES CXX)
 
@@ -8,6 +27,9 @@ option(DD_BUILD_TESTS       "Build unit tests"          ON)
 option(DD_ENABLE_SANITIZERS "Enable ASan/UBSan (Debug)" OFF)
 option(BUILD_SHARED_LIBS    "Build shared libs"         OFF)
 
+# NEW: (optional) switch to enable/disable MPI
+option(DD_ENABLE_MPI        "Enable MPI support"        ON)
+
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 endif()
@@ -15,6 +37,11 @@ endif()
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+# NEW: find MPI if enabled
+if(DD_ENABLE_MPI)
+  find_package(MPI REQUIRED)
+endif()
 
 # ================================================================
 # Library: Algebra (Dense)
@@ -33,11 +60,26 @@ add_library(dd_algebra
     src/preconditioner/block_jacobi.cpp
     src/preconditioner/diagonal_jacobi.cpp
     src/preconditioner/additive_schwarz.cpp
+    src/partitioner/partitioner.cpp)
+
+
+
+add_library(dd::algebra ALIAS dd_algebra)
+
+target_include_directories(dd_algebra
+    PUBLIC
+        ${PROJECT_SOURCE_DIR}/include
+        ${CMAKE_SOURCE_DIR}/utils
 )
+
+# NEW: link MPI to the library if enabled
+if(DD_ENABLE_MPI)
+  target_link_libraries(dd_algebra PUBLIC MPI::MPI_CXX)
+endif()
 
 # It is best practice to keep a namespace for CMake targets (e.g., dd::) 
 # even if you removed the C++ namespace. This prevents name collisions.
-add_library(dd::algebra ALIAS dd_algebra)
+#add_library(dd::algebra ALIAS dd_algebra)
 
 target_include_directories(dd_algebra
     PUBLIC
@@ -76,17 +118,26 @@ if(DD_BUILD_TESTS)
   add_executable(testMatrixSparse tests/testMatrixSparse.cpp)
   add_executable(testSolver tests/testSolver.cpp)
   add_executable(testPreconditioner tests/testPreconditioner.cpp)
+  add_executable(testPartitioner tests/testPartitioner.cpp)
 
   # Link against the main library
   target_link_libraries(testMatrixDense PRIVATE dd_algebra)
   target_link_libraries(testMatrixSparse PRIVATE dd_algebra)
   target_link_libraries(testSolver PRIVATE dd_algebra)
   target_link_libraries(testPreconditioner PRIVATE dd_algebra)
+  target_link_libraries(testPartitioner PRIVATE dd_algebra)
+
+  # NEW: link MPI explicitly for tests that call MPI_Init directly
+  if(DD_ENABLE_MPI)
+    target_link_libraries(testPartitioner PRIVATE MPI::MPI_CXX)
+    # (MatrixDense / Solver tests probably don't need MPI, so leave them as-is)
+  endif()
 
   add_test(NAME MatrixDense COMMAND testMatrixDense)
   add_test(NAME MatrixSparse COMMAND testMatrixSparse)
   add_test(NAME Solver COMMAND testSolver)
   add_test(NAME Preconditioner COMMAND testPreconditioner)
+  add_test(NAME Partitioner COMMAND testPartitioner)
 endif()
 
 # ================================================================
