@@ -53,7 +53,7 @@ int main()
     // M.setup(A);
     // } 
 
-    AdditiveSchwarz M(200, 0.5);
+    AdditiveSchwarz M(8, 1);
     {
     DD_TIMED_SCOPE_X("setup AS preconditioner", reg, /*bytes=*/0, /*iters=*/0, "note");
     M.setup(A);
@@ -77,15 +77,15 @@ int main()
 
     std::cout << "Solver finished in " << its << " iterations." << std::endl;
 
-    // std::cout << "b entries" << std::endl;
-    // for (size_t i = 0; i < std::min((size_t)10, b.size()); ++i) {
-    //     std::cout << "b[" << i << "] = " << b[i] << std::endl;
-    // }
+    std::cout << "b entries" << std::endl;
+    for (size_t i = 0; i < std::min((size_t)10, b.size()); ++i) {
+        std::cout << "b[" << i << "] = " << b[i] << std::endl;
+    }
 
-    // std::cout << "Solution x entries" << std::endl;
-    // for (size_t i = 0; i < std::min((size_t)10, x.size()); ++i) {
-    //     std::cout << "x[" << i << "] = " << x[i] << std::endl;
-    // }
+    std::cout << "Solution x entries" << std::endl;
+    for (size_t i = 0; i < std::min((size_t)10, x.size()); ++i) {
+        std::cout << "x[" << i << "] = " << x[i] << std::endl;
+    }
 
     return 0;
 }

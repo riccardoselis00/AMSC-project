@@ -60,6 +60,7 @@ add_library(dd_algebra
     src/preconditioner/block_jacobi.cpp
     src/preconditioner/diagonal_jacobi.cpp
     src/preconditioner/additive_schwarz.cpp
+    src/solver/pcg_mpi.cpp
     src/partitioner/partitioner.cpp)
 
 
@@ -119,6 +120,7 @@ if(DD_BUILD_TESTS)
   add_executable(testSolver tests/testSolver.cpp)
   add_executable(testPreconditioner tests/testPreconditioner.cpp)
   add_executable(testPartitioner tests/testPartitioner.cpp)
+  add_executable(testMPI tests/testMPI.cpp)
 
   # Link against the main library
   target_link_libraries(testMatrixDense PRIVATE dd_algebra)
@@ -126,10 +128,12 @@ if(DD_BUILD_TESTS)
   target_link_libraries(testSolver PRIVATE dd_algebra)
   target_link_libraries(testPreconditioner PRIVATE dd_algebra)
   target_link_libraries(testPartitioner PRIVATE dd_algebra)
+  target_link_libraries(testMPI PRIVATE dd_algebra)
 
   # NEW: link MPI explicitly for tests that call MPI_Init directly
   if(DD_ENABLE_MPI)
     target_link_libraries(testPartitioner PRIVATE MPI::MPI_CXX)
+    target_link_libraries(testMPI PRIVATE MPI::MPI_CXX)
     # (MatrixDense / Solver tests probably don't need MPI, so leave them as-is)
   endif()
 
@@ -138,6 +142,7 @@ if(DD_BUILD_TESTS)
   add_test(NAME Solver COMMAND testSolver)
   add_test(NAME Preconditioner COMMAND testPreconditioner)
   add_test(NAME Partitioner COMMAND testPartitioner)
+  add_test(NAME MPI COMMAND testMPI)
 endif()
 
 # ================================================================
