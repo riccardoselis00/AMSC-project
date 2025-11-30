@@ -1,9 +1,7 @@
 // preconditioner/additive_schwarz.hpp
 #pragma once
-
 #include <vector>
-#include <utility>   // std::pair
-
+#include <utility> 
 #include "algebra/matrixSparse.hpp"
 #include "preconditioner.hpp"    
 #include "algebra/CSR.hpp"          
@@ -12,6 +10,7 @@
 // If you have a base class Preconditioner, keep the inheritance as it was.
 class AdditiveSchwarz final  : public Preconditioner {
 public:
+    enum class Level { OneLevel, TwoLevels };
     using MatrixSparse = ::MatrixSparse;    // or your actual alias
     using Index        = MatrixSparse::Index;
     using Scalar       = MatrixSparse::Scalar;
@@ -24,7 +23,8 @@ public:
         std::vector<std::vector<std::pair<int,double>>> rows;
     };
 
-    AdditiveSchwarz(int nparts, int overlap);
+    AdditiveSchwarz(int nparts, int overlap, Level level = Level::OneLevel);
+
 
     // Build the preconditioner
     void setup(const MatrixSparse& A);
@@ -48,6 +48,7 @@ private:
 
     // non-overlapping partition (global indices)
     std::vector<int> m_starts;
+    Level          m_level;
 
     // overlapped partition
     std::vector<int> m_localStarts;
@@ -59,5 +60,12 @@ private:
     // SSOR parameters
     int    m_ssor_sweeps = 1;
     double m_omega       = 1.95;
+    int m_ncoarse      = 0; // NEW: size of coarse problem
+
+    std::vector<int> m_rowToPart;       // size m_n
+    
+    std::vector<double> m_A0; // NEW: coarse matrix (dense)
+    mutable std::vector<double> m_r0; // NEW: coarse residual
+    mutable std::vector<double> m_y0; // NEW: coarse solution
 };
 

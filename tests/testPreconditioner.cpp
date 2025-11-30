@@ -26,7 +26,9 @@ int main()
     int its = 0;
     std::cout << "Create The Matrix!" << std::endl;   
 
-    MatrixCOO A = MatrixCOO::Poisson2D(40000);
+    AdditiveSchwarz::Level as_level = AdditiveSchwarz::Level::TwoLevels;
+
+    MatrixCOO A = MatrixCOO::Poisson2D(80000);
 
     printf("Matrix created: %zu x %zu, nnz=%zu\n", A.rows(), A.cols(), A.nnz());
 
@@ -51,9 +53,14 @@ int main()
     // {
     // DD_TIMED_SCOPE_X("setup_Blcok Jacobi preconditioner", reg, /*bytes=*/0, /*iters=*/0, "note");
     // M.setup(A);
-    // } 
+    // }
 
-    AdditiveSchwarz M(8, 1);
+    //as_level = AdditiveSchwarz::Level::TwoLevels; // NEW: choose AS level
+
+    AdditiveSchwarz M(8, 1, as_level);  // NEW: choose a partition count and overlap (tune as you like)
+
+    //AdditiveSchwarz M(8, 1); 
+
     {
     DD_TIMED_SCOPE_X("setup AS preconditioner", reg, /*bytes=*/0, /*iters=*/0, "note");
     M.setup(A);
