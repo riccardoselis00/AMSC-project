@@ -5,6 +5,8 @@
 #include "algebra/matrixSparse.hpp"
 #include "preconditioner/additive_schwarz.hpp"
 
+#include <mpi.h>  
+
 #include <stdexcept>
 
 // -----------------------------------------------------------------------------
@@ -95,19 +97,50 @@ static void ssor_local_block(const AdditiveSchwarz::LocalBlock& blk,
 // -----------------------------------------------------------------------------
 // Constructor
 // -----------------------------------------------------------------------------
-AdditiveSchwarz::AdditiveSchwarz(int nparts, int overlap, Level level)
+// -----------------------------------------------------------------------------
+// Main constructor: MPI-aware (works also for serial when n_global==0)
+// -----------------------------------------------------------------------------
+AdditiveSchwarz::AdditiveSchwarz(int      n_global,
+                                 int      ls,
+                                 int      le,
+                                 int      nparts,
+                                 int      overlap,
+                                 MPI_Comm comm,
+                                 Level    level)
   : m_nparts(nparts),
     m_overlap(overlap),
-    m_n(0),
-    m_level(level)   // NEW
+    m_n(0),              // we'll set this to local size in setup()
+    m_level(level),
+    m_comm(comm),
+    m_rank(0),
+    m_size(1),
+    m_n_global(n_global),
+    m_ls(ls),
+    m_le(le),
+    m_n_loc(le - ls)
 {
-    if (m_nparts <= 0) {
+    if (m_nparts <= 0)
         throw std::invalid_argument("AdditiveSchwarz: nparts must be > 0");
-    }
-    if (m_overlap < 0) {
+    if (m_overlap < 0)
         throw std::invalid_argument("AdditiveSchwarz: overlap must be >= 0");
-    }
+
+    MPI_Comm_rank(m_comm, &m_rank);
+    MPI_Comm_size(m_comm, &m_size);
 }
+
+// -----------------------------------------------------------------------------
+// Convenience ctor for *serial* tests: same API you had before
+// -----------------------------------------------------------------------------
+AdditiveSchwarz::AdditiveSchwarz(int nparts, int overlap, Level level)
+  : AdditiveSchwarz(/*n_global=*/0,
+                    /*ls=*/0,
+                    /*le=*/0,
+                    nparts,
+                    overlap,
+                    MPI_COMM_SELF,   // single-process communicator
+                    level)
+{}
+
 
 
 // -----------------------------------------------------------------------------
@@ -139,17 +172,32 @@ void AdditiveSchwarz::setup(const MatrixSparse& A)
     }
     m_starts[static_cast<std::size_t>(m_nparts)] = static_cast<int>(m_n);
 
-    m_rowToPart.assign(static_cast<std::size_t>(m_n), -1);
+    // m_rowToPart.assign(static_cast<std::size_t>(m_n), -1);
+    // for (int p = 0; p < m_nparts; ++p) {
+    //     int s = m_starts[static_cast<std::size_t>(p)];
+    //     int e = m_starts[static_cast<std::size_t>(p + 1)];
+    //     for (int i = s; i < e; ++i) {
+    //         m_rowToPart[static_cast<std::size_t>(i)] = p;
+    //     }
+    // }
+
+    // Build *global* row -> part mapping for coarse space
+    m_rowToPart.assign(static_cast<std::size_t>(m_n_global), -1);
+
+    const int nG   = m_n_global;
+    const int baseG = nG / m_nparts;
+    int       remG  = nG % m_nparts;
+    int       posG  = 0;
+
     for (int p = 0; p < m_nparts; ++p) {
-        int s = m_starts[static_cast<std::size_t>(p)];
-        int e = m_starts[static_cast<std::size_t>(p + 1)];
+        int s = posG;
+        int sz = baseG + (p < remG ? 1 : 0);
+        int e = s + sz;
         for (int i = s; i < e; ++i) {
             m_rowToPart[static_cast<std::size_t>(i)] = p;
         }
+        posG = e;
     }
-
-
-
 
     // 2) Build overlapped ranges [ls_p, le_p)
     m_localStarts.resize(static_cast<std::size_t>(m_nparts));
@@ -208,37 +256,79 @@ void AdditiveSchwarz::setup(const MatrixSparse& A)
         });
     }
 
-        // NEW: build coarse operator if two-level AS is requested
-    if (m_level == Level::TwoLevels) {
-        // ncoarse = number of parts
-        m_ncoarse = m_nparts;
+    // // NEW: build coarse operator if two-level AS is requested
+    // if (m_level == Level::TwoLevels) {
+    //     // ncoarse = number of parts
+    //     m_ncoarse = m_nparts;
 
-        // Dense ncoarse x ncoarse matrix, row-major, initialized to 0
-        m_A0.assign(static_cast<std::size_t>(m_ncoarse * m_ncoarse), 0.0);
+    //     // Dense ncoarse x ncoarse matrix, row-major, initialized to 0
+    //     m_A0.assign(static_cast<std::size_t>(m_ncoarse * m_ncoarse), 0.0);
 
-        // Assemble A0(i,j) = sum_{r in part i, c in part j} A(r,c)
-        A.forEachNZ([&](Index r, Index c, Scalar v) {
-            int ri = static_cast<int>(r);
-            int ci = static_cast<int>(c);
+    //     // Assemble A0(i,j) = sum_{r in part i, c in part j} A(r,c)
+    //     A.forEachNZ([&](Index r, Index c, Scalar v) {
+    //         int ri = static_cast<int>(r);
+    //         int ci = static_cast<int>(c);
 
-            int pi = m_rowToPart[static_cast<std::size_t>(ri)];
-            int pj = m_rowToPart[static_cast<std::size_t>(ci)];
+    //         int pi = m_rowToPart[static_cast<std::size_t>(ri)];
+    //         int pj = m_rowToPart[static_cast<std::size_t>(ci)];
 
-            // accumulate into dense coarse matrix
-            m_A0[static_cast<std::size_t>(pi * m_ncoarse + pj)]
-                += static_cast<double>(v);
-        });
+    //         // accumulate into dense coarse matrix
+    //         m_A0[static_cast<std::size_t>(pi * m_ncoarse + pj)]
+    //             += static_cast<double>(v);
+    //     });
 
-        // Allocate work vectors for coarse residual and solution
-        m_r0.assign(static_cast<std::size_t>(m_ncoarse), 0.0);
-        m_y0.assign(static_cast<std::size_t>(m_ncoarse), 0.0);
+    //     // Allocate work vectors for coarse residual and solution
+    //     m_r0.assign(static_cast<std::size_t>(m_ncoarse), 0.0);
+    //     m_y0.assign(static_cast<std::size_t>(m_ncoarse), 0.0);
+
+
 
         // (Optional but recommended)
         // You can factorize m_A0 in-place once here with a simple Cholesky
         // and then use it in apply(). For now we can keep a simple dense solve
         // inside solveCoarse().
+
+
+            // 4) Build coarse operator A0 if two-level AS is requested
+    if (m_level == Level::TwoLevels) {
+        // One coarse DOF per (global) part
+        m_ncoarse = m_nparts;
+
+        // Local contribution to A0
+        std::vector<double> A0_local(
+            static_cast<std::size_t>(m_ncoarse * m_ncoarse), 0.0);
+
+        // A is local; global row/col = m_ls + local row/col
+        A.forEachNZ([&](Index r, Index c, Scalar v) {
+            int i_loc = static_cast<int>(r);
+            int j_loc = static_cast<int>(c);
+
+            int gi = m_ls + i_loc;  // global row index
+            int gj = m_ls + j_loc;  // global col index (assuming simple dist)
+
+            int pi = m_rowToPart[static_cast<std::size_t>(gi)];
+            int pj = m_rowToPart[static_cast<std::size_t>(gj)];
+
+            A0_local[static_cast<std::size_t>(pi * m_ncoarse + pj)]
+                += static_cast<double>(v);
+        });
+
+        // Global coarse matrix A0 = sum over ranks of A0_local
+        m_A0.assign(static_cast<std::size_t>(m_ncoarse * m_ncoarse), 0.0);
+        MPI_Allreduce(A0_local.data(), m_A0.data(),
+                      m_ncoarse * m_ncoarse,
+                      MPI_DOUBLE, MPI_SUM, m_comm);
+
+        // Allocate coarse residual and solution
+        m_r0_local.assign(static_cast<std::size_t>(m_ncoarse), 0.0);
+        m_r0      .assign(static_cast<std::size_t>(m_ncoarse), 0.0);
+        m_y0      .assign(static_cast<std::size_t>(m_ncoarse), 0.0);
+
+        // You may optionally factorize m_A0 here once for speed.
     }
 }
+
+
 
 
 // -----------------------------------------------------------------------------
@@ -307,21 +397,21 @@ static void solve_dense_sym_pos(const std::vector<double>& A,
 void AdditiveSchwarz::apply(const std::vector<double>& r,
                             std::vector<double>&       z) const
 {
-    if (r.size() != static_cast<std::size_t>(m_n)) {
-        throw std::runtime_error("AdditiveSchwarz::apply: r has wrong size");
+    // r is local residual of size n_loc
+    if (r.size() != static_cast<std::size_t>(m_n_loc)) {
+        throw std::runtime_error("AdditiveSchwarz::apply: local r has wrong size");
     }
 
-    // We accumulate contributions in overlapped DOFs
     z.assign(r.size(), 0.0);
 
-    const int n_int = static_cast<int>(m_n);
+    const int n_int = m_n_loc; // local size
 
     std::vector<double> rhs;
     std::vector<double> sol;
 
     for (int p = 0; p < m_nparts; ++p) {
         const auto& blk = m_blocks[static_cast<std::size_t>(p)];
-        const int   ls  = blk.ls;
+        const int   ls  = blk.ls;   // local start
         const int   bs  = blk.bs;
 
         if (bs <= 0) continue;
@@ -329,14 +419,14 @@ void AdditiveSchwarz::apply(const std::vector<double>& r,
         rhs.resize(static_cast<std::size_t>(bs));
         sol.resize(static_cast<std::size_t>(bs));
 
-        // Restrict r to local RHS
+        // Restrict local r to local block
         for (int i = 0; i < bs; ++i) {
-            int gi = ls + i;
-            if (gi < 0 || gi >= n_int) {
+            int li = ls + i;
+            if (li < 0 || li >= n_int) {
                 throw std::runtime_error("AdditiveSchwarz::apply: index out of range");
             }
             rhs[static_cast<std::size_t>(i)] =
-                r[static_cast<std::size_t>(gi)];
+                r[static_cast<std::size_t>(li)];
         }
 
         // Local approximate solve with SSOR
@@ -346,41 +436,47 @@ void AdditiveSchwarz::apply(const std::vector<double>& r,
                          m_ssor_sweeps,
                          m_omega);
 
-        // Prolongate/add contribution: z[gi] += sol_i
+        // Prolongate/add local contribution
         for (int i = 0; i < bs; ++i) {
-            int gi = ls + i;
-            z[static_cast<std::size_t>(gi)] +=
+            int li = ls + i;
+            z[static_cast<std::size_t>(li)] +=
                 sol[static_cast<std::size_t>(i)];
         }
-
     }
 
-    // -------------------- NEW: coarse correction (2-level AS) --------------------
+    // -------------------- Coarse correction (2-level AS) --------------------
     if (m_level == Level::TwoLevels) {
         if (m_ncoarse != m_nparts) {
             throw std::runtime_error("AdditiveSchwarz::apply: invalid coarse size");
         }
 
-        // 1) Build coarse residual r0[p] = sum_{i in part p} (r[i] - A_loc approx? or just r[i])
-        // Here we use the simplest choice: restrict the *original* residual r.
-        // For a more accurate method, you can use the preconditioned residual,
-        // but this simple version is fine to get started.
+        // 1) Local coarse residual r0_local[p] = sum_{gi in part p} r_loc[gi]
+        std::fill(m_r0_local.begin(), m_r0_local.end(), 0.0);
 
-        std::fill(m_r0.begin(), m_r0.end(), 0.0);
-
-        for (int i = 0; i < n_int; ++i) {
-            int p = m_rowToPart[static_cast<std::size_t>(i)];
-            m_r0[static_cast<std::size_t>(p)] += r[static_cast<std::size_t>(i)];
+        for (int i_loc = 0; i_loc < m_n_loc; ++i_loc) {
+            int gi = m_ls + i_loc;   // global index of this local DOF
+            int p  = m_rowToPart[static_cast<std::size_t>(gi)];
+            m_r0_local[static_cast<std::size_t>(p)] +=
+                r[static_cast<std::size_t>(i_loc)];
         }
 
-        // 2) Solve coarse system A0 * y0 = r0
-        solve_dense_sym_pos(m_A0, m_ncoarse, m_r0.data(), m_y0.data());
+        // 2) Global coarse residual r0 = sum over ranks of r0_local
+        MPI_Allreduce(m_r0_local.data(), m_r0.data(),
+                      m_ncoarse, MPI_DOUBLE, MPI_SUM, m_comm);
 
-        // 3) Prolong coarse solution back to fine grid and add to z
-        //    z[i] += y0[ part(i) ]
-        for (int i = 0; i < n_int; ++i) {
-            int p = m_rowToPart[static_cast<std::size_t>(i)];
-            z[static_cast<std::size_t>(i)] += m_y0[static_cast<std::size_t>(p)];
+        // 3) Solve coarse system A0 y0 = r0
+        //    (solve on each rank; A0 is small, this is cheap)
+        solve_dense_sym_pos(m_A0, m_ncoarse,
+                            m_r0.data(), m_y0.data());
+
+        // 4) Prolong coarse solution back to local fine grid
+        //    z[i_loc] += y0[ part(global_i) ]
+        for (int i_loc = 0; i_loc < m_n_loc; ++i_loc) {
+            int gi = m_ls + i_loc;
+            int p  = m_rowToPart[static_cast<std::size_t>(gi)];
+            z[static_cast<std::size_t>(i_loc)] +=
+                m_y0[static_cast<std::size_t>(p)];
         }
     }
 }
+

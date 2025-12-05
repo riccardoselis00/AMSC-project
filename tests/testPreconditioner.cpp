@@ -26,7 +26,7 @@ int main()
     int its = 0;
     std::cout << "Create The Matrix!" << std::endl;   
 
-    AdditiveSchwarz::Level as_level = AdditiveSchwarz::Level::TwoLevels;
+    //AdditiveSchwarz::Level as_level = AdditiveSchwarz::Level::TwoLevels;
 
     MatrixCOO A = MatrixCOO::Poisson2D(80000);
 
@@ -57,7 +57,7 @@ int main()
 
     //as_level = AdditiveSchwarz::Level::TwoLevels; // NEW: choose AS level
 
-    AdditiveSchwarz M(8, 1, as_level);  // NEW: choose a partition count and overlap (tune as you like)
+    AdditiveSchwarz M(8, 1);  // NEW: choose a partition count and overlap (tune as you like)
 
     //AdditiveSchwarz M(8, 1); 
 

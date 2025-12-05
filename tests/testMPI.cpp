@@ -28,13 +28,14 @@ int main(int argc, char** argv)
     const int n_global = (argc > 1) ? std::atoi(argv[1]) : 20000;
 
     if (rank == 0) {
+        std::cout << "=== testMPI: PCG + AdditiveSchwarz (MPI + coarse) ===\n";
         std::cout << "Create The Matrix! (n_global = "
                   << n_global << ", np = " << size << ")\n";
     }
 
     // -------------------------------------------------------------------------
     // Build global matrix and RHS (same on all ranks for now)
-    //   A_global ~ 1D Poisson-like operator
+    //   A_global ~ Poisson-like operator
     //   b_global = (+1, -1, +1, -1, ...)
     // -------------------------------------------------------------------------
     MatrixCOO A_global = MatrixCOO::Poisson2D(static_cast<Index>(n_global));
@@ -54,29 +55,21 @@ int main(int argc, char** argv)
     // Partition global rows [0, n_global) among MPI ranks
     // -------------------------------------------------------------------------
     BlockRowPartitioner part(n_global, comm);
-    const int ls    = part.ls();
-    const int le    = part.le();
-    const int n_loc = part.nLocal();
+    const int ls    = part.ls();      // first global row on this rank
+    const int le    = part.le();      // one-past-last global row
+    const int n_loc = part.nLocal();  // local number of rows
 
     std::cout << "[rank " << rank << "] local range [ls, le) = ["
               << ls << ", " << le << "), n_loc = " << n_loc << "\n";
 
     // -------------------------------------------------------------------------
-    // Build local system A_loc, b_loc
-    //
-    // Here we restrict A_global to rows/cols in [ls, le).
-    // That gives a block-diagonal system (block-Jacobi style); for a *true*
-    // distributed solve you would keep global column indices and implement
-    // halo exchanges in gemv, but this is a clean first step to test:
-    //   - partitioner
-    //   - AdditiveSchwarz on local blocks
-    //   - PCGSolverMPI structure
+    // Build local system A_loc, b_loc by restricting A_global to [ls, le)
     // -------------------------------------------------------------------------
     MatrixCOO A_loc(static_cast<Index>(n_loc),
                     static_cast<Index>(n_loc));
 
-    // 1D Poisson → at most 3 nonzeros per row
-    A_loc.reserve(3u * static_cast<std::size_t>(n_loc));
+    // Poisson → few nonzeros per row; reserve some space
+    A_loc.reserve(5u * static_cast<std::size_t>(n_loc));
 
     A_global.forEachNZ([&](Index i, Index j, Scalar v) {
         const int gi = static_cast<int>(i);
@@ -95,24 +88,50 @@ int main(int argc, char** argv)
     std::vector<double> b_loc;
     part.extractLocalVector(b_global, b_loc);
 
-    // -------------------------------------------------------------------------
-    // Local Additive Schwarz preconditioner & MPI PCG
-    // -------------------------------------------------------------------------
-    
-    Registry reg;   // timing registry
-
-    if (rank == 0) {
-        std::cout << "Setting up the Additive Schwarz preconditioner (local)...\n";
+    if ((int)b_loc.size() != n_loc) {
+        throw std::runtime_error("testMPI: b_loc size != n_loc");
     }
 
-    // You can tune nparts / overlap as you like.
-    // [nparts] is number of subdomains *within this rank*,
-    // [overlap] is the additive Schwarz overlap in DOFs.
-    AdditiveSchwarz M_loc(8, 1);
+    if (rank == 0) {
+        std::cout << "Local matrix assembled: n_loc = "
+                  << n_loc << ", nnz_loc = " << A_loc.nnz() << "\n";
+    }
+
+    // -------------------------------------------------------------------------
+    // Local Additive Schwarz preconditioner (MPI + coarse) & MPI PCG
+    // -------------------------------------------------------------------------
+    Registry reg;   // timing registry
+
+    const int nparts  = 8;   // number of subdomains per rank
+    const int overlap = 1;   // overlap in local DOFs
+
+    AdditiveSchwarz::Level level = AdditiveSchwarz::Level::OneLevel;
+
+    if (rank == 0) {
+        std::cout << "Setting up Additive Schwarz (nparts=" << nparts
+                  << ", overlap=" << overlap
+                  << ", level=" << (level == AdditiveSchwarz::Level::TwoLevels
+                                     ? "TwoLevels" : "OneLevel")
+                  << ")...\n";
+    }
+
+    // MPI-aware + coarse AS
+    AdditiveSchwarz M_loc(n_global,  // total DOFs
+                          ls,        // first global row on this rank
+                          le,        // one-past-last global row
+                          nparts,
+                          overlap,
+                          comm,
+                          level);
+
+    M_loc.setSSORSweeps(1);
+    M_loc.setOmega(1.95);
 
     {
         DD_TIMED_SCOPE_X("setup AS preconditioner", reg,
                          /*bytes=*/0, /*iters=*/0, "note");
+        // A_loc is MatrixCOO, but AdditiveSchwarz::setup takes MatrixSparse const&
+        // → OK via polymorphism (MatrixCOO derives from MatrixSparse)
         M_loc.setup(A_loc);
     }
 
@@ -123,16 +142,17 @@ int main(int argc, char** argv)
         DD_TIMED_SCOPE_X("solve", reg,
                          /*bytes=*/0, /*iters=*/0, "note");
 
-        PCGSolverMPI solver(A_loc, &M_loc, comm);
+        // MPI-aware PCG (works on local vectors; matrix passed by base ref)
+        PCGSolverMPI solver(A_loc, &M_loc, comm, n_global, ls, le);
         solver.setMaxIters(500000);
-        solver.setTolerance(1e-12);
+        solver.setTolerance(1e-16);
 
         its = solver.solve(b_loc, x_loc);
     }
 
     if (rank == 0) {
         std::cout << "Solver finished in " << its
-                  << " iterations (local block system).\n";
+                  << " iterations.\n";
         reg.print_table();
     }
 
@@ -144,6 +164,12 @@ int main(int argc, char** argv)
     if (rank == 0) {
         std::cout << "Gathered solution size on root = "
                   << x_global.size() << "\n";
+
+        std::cout << "First 10 entries of x_global:\n";
+        for (int i = 0; i < std::min(10, n_global); ++i) {
+            std::cout << "x[" << i << "] = "
+                      << x_global[static_cast<std::size_t>(i)] << "\n";
+        }
     }
 
     MPI_Finalize();
