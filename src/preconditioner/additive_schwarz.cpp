@@ -109,24 +109,52 @@ AdditiveSchwarz::AdditiveSchwarz(int      n_global,
                                  Level    level)
   : m_nparts(nparts),
     m_overlap(overlap),
-    m_n(0),              // we'll set this to local size in setup()
-    m_level(level),
+    m_n(0),
+    m_starts(),
+    m_localStarts(),
+    m_localSizes(),
+    m_blocks(),
+    m_ssor_sweeps(1),
+    m_omega(1.95),
     m_comm(comm),
     m_rank(0),
     m_size(1),
     m_n_global(n_global),
     m_ls(ls),
     m_le(le),
-    m_n_loc(le - ls)
+    m_n_loc(le - ls),
+    m_level(level),
+    m_ncoarse(0),
+    m_rowToPart(),
+    m_A0(),
+    m_r0_local(),
+    m_r0(),
+    m_y0()
 {
-    if (m_nparts <= 0)
+    if (m_nparts <= 0) {
         throw std::invalid_argument("AdditiveSchwarz: nparts must be > 0");
-    if (m_overlap < 0)
+    }
+    if (m_overlap < 0) {
         throw std::invalid_argument("AdditiveSchwarz: overlap must be >= 0");
+    }
 
-    MPI_Comm_rank(m_comm, &m_rank);
-    MPI_Comm_size(m_comm, &m_size);
+    // NEW: detect whether MPI is initialized
+    int initialized = 0;
+    MPI_Initialized(&initialized);   // this is allowed before MPI_Init
+
+    if (initialized) {
+        m_use_mpi = true;
+        MPI_Comm_rank(m_comm, &m_rank);
+        MPI_Comm_size(m_comm, &m_size);
+    } else {
+        // Pure serial mode: do NOT call any other MPI routines
+        m_use_mpi = false;
+        m_rank = 0;
+        m_size = 1;
+        m_comm = MPI_COMM_SELF;   // not used for real MPI calls
+    }
 }
+
 
 // -----------------------------------------------------------------------------
 // Convenience ctor for *serial* tests: same API you had before
@@ -158,6 +186,18 @@ void AdditiveSchwarz::setup(const MatrixSparse& A)
         throw std::runtime_error(
             "AdditiveSchwarz::setup requires a square matrix.");
     }
+
+    // SERIAL: if n_global is not set, infer it
+    if (m_n_global == 0) {
+        m_n_global = static_cast<int>(m_n);
+        m_ls       = 0;
+        m_le       = m_n_global;
+    }
+
+    // In ALL cases (serial + MPI), local size is A.rows()
+    m_n_loc = static_cast<int>(m_n);   // <<< ADD THIS LINE
+
+
 
     // 1) Non-overlapping partition
     m_starts.resize(static_cast<std::size_t>(m_nparts) + 1);
@@ -314,10 +354,23 @@ void AdditiveSchwarz::setup(const MatrixSparse& A)
         });
 
         // Global coarse matrix A0 = sum over ranks of A0_local
-        m_A0.assign(static_cast<std::size_t>(m_ncoarse * m_ncoarse), 0.0);
-        MPI_Allreduce(A0_local.data(), m_A0.data(),
-                      m_ncoarse * m_ncoarse,
-                      MPI_DOUBLE, MPI_SUM, m_comm);
+        // m_A0.assign(static_cast<std::size_t>(m_ncoarse * m_ncoarse), 0.0);
+        // MPI_Allreduce(A0_local.data(), m_A0.data(),
+        //               m_ncoarse * m_ncoarse,
+        //               MPI_DOUBLE, MPI_SUM, m_comm);
+
+
+        m_A0.assign(m_ncoarse * m_ncoarse, 0.0);
+
+        if (m_use_mpi) {
+            MPI_Allreduce(A0_local.data(), m_A0.data(),
+                        m_ncoarse * m_ncoarse,
+                        MPI_DOUBLE, MPI_SUM, m_comm);
+        } else {
+            // Serial: local contribution IS the global one
+            m_A0 = std::move(A0_local);
+        }
+
 
         // Allocate coarse residual and solution
         m_r0_local.assign(static_cast<std::size_t>(m_ncoarse), 0.0);
@@ -461,8 +514,19 @@ void AdditiveSchwarz::apply(const std::vector<double>& r,
         }
 
         // 2) Global coarse residual r0 = sum over ranks of r0_local
+        // MPI_Allreduce(m_r0_local.data(), m_r0.data(),
+        //               m_ncoarse, MPI_DOUBLE, MPI_SUM, m_comm);
+
+        if (m_use_mpi) {
         MPI_Allreduce(m_r0_local.data(), m_r0.data(),
-                      m_ncoarse, MPI_DOUBLE, MPI_SUM, m_comm);
+                        m_ncoarse, MPI_DOUBLE, MPI_SUM, m_comm);
+        } else {
+            // Serial: just copy local to global
+            std::copy(m_r0_local.begin(), m_r0_local.end(), m_r0.begin());
+        }
+
+
+
 
         // 3) Solve coarse system A0 y0 = r0
         //    (solve on each rank; A0 is small, this is cheap)

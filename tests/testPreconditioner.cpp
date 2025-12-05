@@ -28,7 +28,7 @@ int main()
 
     //AdditiveSchwarz::Level as_level = AdditiveSchwarz::Level::TwoLevels;
 
-    MatrixCOO A = MatrixCOO::Poisson2D(80000);
+    MatrixCOO A = MatrixCOO::Poisson2D(8000);
 
     printf("Matrix created: %zu x %zu, nnz=%zu\n", A.rows(), A.cols(), A.nnz());
 
@@ -47,7 +47,7 @@ int main()
 
     
     // std::cout << "Setting up the Identity Preconditioner!" << std::endl;
-    // IdentityPreconditioner M;   
+    IdentityPreconditioner M;   
 
     // BlockJacobi M(8);                        // NEW: choose a partition count (tune as you like)
     // {
@@ -57,14 +57,14 @@ int main()
 
     //as_level = AdditiveSchwarz::Level::TwoLevels; // NEW: choose AS level
 
-    AdditiveSchwarz M(8, 1);  // NEW: choose a partition count and overlap (tune as you like)
+    //AdditiveSchwarz M(8, 1);  // NEW: choose a partition count and overlap (tune as you like)
 
     //AdditiveSchwarz M(8, 1); 
 
-    {
-    DD_TIMED_SCOPE_X("setup AS preconditioner", reg, /*bytes=*/0, /*iters=*/0, "note");
-    M.setup(A);
-    }
+    // {
+    // DD_TIMED_SCOPE_X("setup AS preconditioner", reg, /*bytes=*/0, /*iters=*/0, "note");
+    // M.setup(A);
+    // }
     
     PCGSolver solver(A, &M);
 
