@@ -14,7 +14,7 @@ public:
 
   explicit DiagonalJacobi(int nparts = 1);
 
-  void setup(const MatrixSparse& A);
+  void setup(const MatrixSparse& A) override;
 
   void apply(const std::vector<double>& r, std::vector<double>& z) const;
 

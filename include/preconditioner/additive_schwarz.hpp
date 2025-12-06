@@ -77,7 +77,7 @@ public:
     //   - A is the local matrix for rows [ls, le)
     //   - local partitions & blocks are built in local index space [0, n_loc)
     //   - global coarse operator A0 is assembled via local contributions + MPI
-    void setup(const MatrixSparse& A);
+    void setup(const MatrixSparse& A) override;
 
     // Apply preconditioner: z = M^{-1} r
     //
