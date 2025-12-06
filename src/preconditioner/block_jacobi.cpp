@@ -55,90 +55,124 @@ static void lu_solve_block(const std::vector<double>& LU,
   }
 }
 
-BlockJacobi::BlockJacobi(int nparts)
-  : m_nparts(nparts), m_n(0)
+BlockJacobi::BlockJacobi(int block_size)
+  : m_blockSize(block_size),
+    m_n(0),
+    m_nparts(0)
 {
-  if (m_nparts <= 0) {
-    throw std::invalid_argument("BlockJacobi: nparts must be > 0");
-  }
+    if (m_blockSize <= 0) {
+        throw std::invalid_argument("BlockJacobi: block_size must be > 0");
+    }
 }
 
 void BlockJacobi::setup(const MatrixSparse& A)
 {
-  using Index  = MatrixSparse::Index;
-  using Scalar = MatrixSparse::Scalar;
+    using Index  = MatrixSparse::Index;
+    using Scalar = MatrixSparse::Scalar;
 
-  m_n = A.rows();
-  if (A.cols() != m_n) {
-    throw std::runtime_error("BlockJacobi::setup requires a square matrix.");
-  }
+    m_n = static_cast<int>(A.rows());
+    if (A.cols() != static_cast<std::size_t>(m_n)) {
+        throw std::runtime_error("BlockJacobi::setup requires a square matrix.");
+    }
 
-  m_starts.resize(static_cast<std::size_t>(m_nparts) + 1);
-  const Index base = m_n / static_cast<Index>(m_nparts);
-  Index rem = m_n % static_cast<Index>(m_nparts);
-  Index pos = 0;
-  for (int p = 0; p < m_nparts; ++p) {
-    m_starts[static_cast<std::size_t>(p)] = static_cast<int>(pos);
-    Index sz = base + (static_cast<Index>(p) < rem ? 1 : 0);
-    pos += sz;
-  }
-  m_starts[static_cast<std::size_t>(m_nparts)] = static_cast<int>(m_n);
+    // 1) Define blocks: contiguous rows of size m_blockSize (last may be smaller)
+    m_nparts = (m_n + m_blockSize - 1) / m_blockSize; // ceil(n / blockSize)
 
-  m_blockSizes.resize(static_cast<std::size_t>(m_nparts));
-  m_LUblocks.clear();
-  m_LUblocks.resize(static_cast<std::size_t>(m_nparts));
+    m_starts.resize(static_cast<std::size_t>(m_nparts + 1));
+    m_blockSizes.resize(static_cast<std::size_t>(m_nparts));
 
-  for (int p = 0; p < m_nparts; ++p) {
-    const int s  = m_starts[static_cast<std::size_t>(p)];
-    const int e  = m_starts[static_cast<std::size_t>(p + 1)];
-    const int bs = e - s;
+    int pos = 0;
+    for (int p = 0; p < m_nparts; ++p) {
+        m_starts[static_cast<std::size_t>(p)] = pos;
+        int bs = std::min(m_blockSize, m_n - pos);
+        m_blockSizes[static_cast<std::size_t>(p)] = bs;
+        pos += bs;
+    }
+    m_starts[static_cast<std::size_t>(m_nparts)] = m_n;
 
-    m_blockSizes[static_cast<std::size_t>(p)] = bs;
-    auto& blockLU = m_LUblocks[static_cast<std::size_t>(p)];
-    blockLU.assign(static_cast<std::size_t>(bs * bs), 0.0);
+    // 2) Allocate dense blocks and row->block map
+    m_LUblocks.clear();
+    m_LUblocks.resize(static_cast<std::size_t>(m_nparts));
 
+    int max_bs = 0;
+    for (int p = 0; p < m_nparts; ++p) {
+        int bs = m_blockSizes[static_cast<std::size_t>(p)];
+        max_bs = std::max(max_bs, bs);
+        m_LUblocks[static_cast<std::size_t>(p)].assign(
+            static_cast<std::size_t>(bs * bs), 0.0);
+    }
+
+    m_rowToBlock.resize(static_cast<std::size_t>(m_n));
+    for (int p = 0; p < m_nparts; ++p) {
+        int s = m_starts[static_cast<std::size_t>(p)];
+        int e = m_starts[static_cast<std::size_t>(p + 1)];
+        for (int i = s; i < e; ++i) {
+            m_rowToBlock[static_cast<std::size_t>(i)] = p;
+        }
+    }
+
+    // 3) Fill diagonal blocks in ONE pass over A
     A.forEachNZ([&](Index r, Index c, Scalar v) {
-      int ri = static_cast<int>(r);
-      int ci = static_cast<int>(c);
-      if (ri >= s && ri < e && ci >= s && ci < e) {
-        int lr = ri - s; 
-        int lc = ci - s; 
-        blockLU[lr * bs + lc] = static_cast<double>(v);
-      }
+        int ri = static_cast<int>(r);
+        int ci = static_cast<int>(c);
+        int pRow = m_rowToBlock[static_cast<std::size_t>(ri)];
+        int pCol = m_rowToBlock[static_cast<std::size_t>(ci)];
+        if (pRow != pCol) return;  // off-diagonal block ignored
+
+        const int p  = pRow;
+        const int s  = m_starts[static_cast<std::size_t>(p)];
+        const int bs = m_blockSizes[static_cast<std::size_t>(p)];
+
+        int lr = ri - s;
+        int lc = ci - s;
+
+        m_LUblocks[static_cast<std::size_t>(p)]
+            [static_cast<std::size_t>(lr * bs + lc)] = static_cast<double>(v);
     });
 
-    lu_factor_block(blockLU, bs);
-  }
+    // 4) Factor each block (dense LU on SMALL matrices)
+    for (int p = 0; p < m_nparts; ++p) {
+        int bs = m_blockSizes[static_cast<std::size_t>(p)];
+        if (bs > 0) {
+            lu_factor_block(m_LUblocks[static_cast<std::size_t>(p)], bs);
+        }
+    }
+
+    // 5) Prepare workspaces for apply()
+    m_rhs.resize(static_cast<std::size_t>(max_bs));
+    m_sol.resize(static_cast<std::size_t>(max_bs));
 }
+
 
 void BlockJacobi::apply(const std::vector<double>& r,
                         std::vector<double>& z) const
 {
-  if (r.size() != static_cast<std::size_t>(m_n)) {
-    throw std::runtime_error("BlockJacobi::apply: r has wrong size");
-  }
-
-  z.assign(r.size(), 0.0);
-
-  for (int p = 0; p < m_nparts; ++p) {
-    const int s  = m_starts[static_cast<std::size_t>(p)];
-    const int e  = m_starts[static_cast<std::size_t>(p + 1)];
-    const int bs = m_blockSizes[static_cast<std::size_t>(p)];
-
-    const auto& LU = m_LUblocks[static_cast<std::size_t>(p)];
-    if (bs <= 0) continue;
-
-    std::vector<double> rhs(bs);
-    std::vector<double> sol(bs);
-
-    for (int i = 0; i < bs; ++i) {
-      rhs[static_cast<std::size_t>(i)] = r[static_cast<std::size_t>(s + i)];
+    if (r.size() != static_cast<std::size_t>(m_n)) {
+        throw std::runtime_error("BlockJacobi::apply: r has wrong size");
     }
 
-    lu_solve_block(LU, bs, rhs.data(), sol.data());
+    z.assign(r.size(), 0.0);
 
-    for (int i = 0; i < bs; ++i) {
-      z[static_cast<std::size_t>(s + i)] = sol[static_cast<std::size_t>(i)];
+    for (int p = 0; p < m_nparts; ++p) {
+        const int s  = m_starts[static_cast<std::size_t>(p)];
+        const int bs = m_blockSizes[static_cast<std::size_t>(p)];
+        if (bs <= 0) continue;
+
+        const auto& LU = m_LUblocks[static_cast<std::size_t>(p)];
+
+        double* rhs = m_rhs.data();
+        double* sol = m_sol.data();
+
+        // rhs = local residual
+        for (int i = 0; i < bs; ++i) {
+            rhs[i] = r[static_cast<std::size_t>(s + i)];
+        }
+
+        lu_solve_block(LU, bs, rhs, sol);
+
+        // write back
+        for (int i = 0; i < bs; ++i) {
+            z[static_cast<std::size_t>(s + i)] = sol[i];
+        }
     }
-  }
 }

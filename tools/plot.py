@@ -3,19 +3,18 @@
 Utility functions to post-process PCG + preconditioner timing results
 and generate plots.
 
-Expected CSV columns:
+Expected CSV columns (like your current output):
 
-    preconditioner   : string label (e.g., "Pr1", "Pr2", ...)
-    dim              : matrix dimension n (for an n x n system)
-    apply_prec_time  : time spent per solve in the preconditioner apply (seconds)
-    iterations       : number of PCG iterations
-    time_per_iter    : average time per iteration (seconds)
+    n,prec,iters,residual,time_setup,time_solve, total time
 
-Each row corresponds to one (preconditioner, dim) pair.
+Notes:
+- Column names are stripped, so ' total time' becomes 'total time'.
+- We then rename 'total time' -> 'total_time' internally.
+- We derive: time_per_iter = time_solve / iters.
 """
 
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Tuple
 
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -27,7 +26,7 @@ import matplotlib.pyplot as plt
 
 def load_data(csv_path: str | Path) -> pd.DataFrame:
     """
-    Load the CSV file and enforce basic types.
+    Load the CSV file produced by the C++ benchmark and normalize columns.
 
     Parameters
     ----------
@@ -37,73 +36,60 @@ def load_data(csv_path: str | Path) -> pd.DataFrame:
     Returns
     -------
     df : pandas.DataFrame
-        DataFrame with typed columns.
+        DataFrame with typed and normalized columns:
+        n, prec, iters, residual, time_setup, time_solve, total_time, time_per_iter
     """
     csv_path = Path(csv_path)
     df = pd.read_csv(csv_path)
 
-    expected = {"preconditioner", "dim", "apply_prec_time", "iterations", "time_per_iter"}
+    # Strip whitespace from column names (e.g. " total time" -> "total time")
+    df.columns = [c.strip() for c in df.columns]
+
+    # Rename "total time" -> "total_time" if present
+    if "total time" in df.columns:
+        df = df.rename(columns={"total time": "total_time"})
+
+    # Basic expected columns
+    expected = {"n", "prec", "iters", "residual", "time_setup", "time_solve"}
     missing = expected - set(df.columns)
     if missing:
-        raise ValueError(f"Missing columns in {csv_path}: {missing}")
+        raise ValueError(f"Missing required columns in {csv_path}: {missing}")
 
-    df["preconditioner"] = df["preconditioner"].astype(str)
-    df["dim"] = df["dim"].astype(int)
-    df["apply_prec_time"] = df["apply_prec_time"].astype(float)
-    df["iterations"] = df["iterations"].astype(int)
-    df["time_per_iter"] = df["time_per_iter"].astype(float)
+    # Types
+    df["n"] = df["n"].astype(int)
+    df["prec"] = df["prec"].astype(str)
+    df["iters"] = df["iters"].astype(int)
+    df["residual"] = df["residual"].astype(float)
+    df["time_setup"] = df["time_setup"].astype(float)
+    df["time_solve"] = df["time_solve"].astype(float)
+
+    # total_time: if present, cast; otherwise compute as setup + solve
+    if "total_time" in df.columns:
+        df["total_time"] = df["total_time"].astype(float)
+    else:
+        df["total_time"] = df["time_setup"] + df["time_solve"]
+
+    # Derived metric: average time per iteration
+    df["time_per_iter"] = df["time_solve"] / df["iters"].where(df["iters"] != 0, 1)
 
     return df
 
 
 def add_total_solve_time(df: pd.DataFrame) -> pd.DataFrame:
     """
-    Add a 'total_solve_time' column = iterations * time_per_iter.
+    For backward compatibility with your notebook.
 
-    Returns a copy, does not modify the original DataFrame in-place.
+    Adds a 'total_solve_time' column. Here we set:
+
+        total_solve_time = total_time
+
+    since `total_time` is already in the CSV (or computed in load_data).
     """
     df2 = df.copy()
-    df2["total_solve_time"] = df2["iterations"] * df2["time_per_iter"]
+    if "total_time" not in df2.columns:
+        df2["total_time"] = df2["time_setup"] + df2["time_solve"]
+    df2["total_solve_time"] = df2["total_time"]
     return df2
-
-
-def pivot_metric(df: pd.DataFrame, value_col: str) -> pd.DataFrame:
-    """
-    Build a table with:
-        rows   = preconditioner
-        cols   = matrix dimension
-        values = chosen metric (value_col).
-
-    Good for debugging and exporting, but plotting does not require this.
-    """
-    table = df.pivot(index="preconditioner", columns="dim", values=value_col)
-    table = table.reindex(sorted(table.columns), axis=1)
-    return table
-
-
-def compute_all_tables(df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
-    """
-    Convenience: given a DataFrame (already loaded), compute pivot tables
-    for key metrics.
-
-    Returns
-    -------
-    tables : dict[str, DataFrame]
-        Keys:
-            - "apply_prec_time"
-            - "iterations"
-            - "time_per_iter"
-            - "total_solve_time" (if present in df)
-    """
-    metrics = ["apply_prec_time", "iterations", "time_per_iter"]
-    if "total_solve_time" in df.columns:
-        metrics.append("total_solve_time")
-
-    tables: Dict[str, pd.DataFrame] = {}
-    for metric in metrics:
-        tables[metric] = pivot_metric(df, metric)
-
-    return tables
 
 
 # ---------------------------------------------------------------------
@@ -121,19 +107,18 @@ def plot_metric(
     metric_label: str | None = None,
 ) -> Tuple[plt.Figure, plt.Axes]:
     """
-    Plot a metric vs matrix dimension, one curve per preconditioner.
+    Plot a metric vs matrix dimension n, one curve per preconditioner (prec).
 
     Parameters
     ----------
     df : pandas.DataFrame
         DataFrame with columns:
-        'preconditioner', 'dim', and the chosen metric.
+        'prec', 'n', and the chosen metric.
     metric : str
         Name of the metric column to plot
-        (e.g. 'iterations', 'apply_prec_time', 'time_per_iter',
-        or 'total_solve_time' if added).
+        (e.g. 'iters', 'time_setup', 'time_solve', 'total_time', 'time_per_iter').
     logx : bool, default True
-        Use logarithmic scale on x-axis (dimensions n, 2n, 4n, ...).
+        Use logarithmic scale on x-axis.
     logy : bool, default False
         Use logarithmic scale on y-axis.
     ax : matplotlib.axes.Axes or None
@@ -151,23 +136,19 @@ def plot_metric(
     if metric not in df.columns:
         raise ValueError(f"Metric '{metric}' not found in DataFrame columns.")
 
-    # Create axes if needed
     if ax is None:
         fig, ax = plt.subplots()
     else:
         fig = ax.figure
 
-    # Sort dimensions so curves are nice and monotone on x-axis
-    # (n, 2n, 4n, 8n, ...)
-    # We do this per preconditioner to avoid problems if some are missing.
-    for pr, group in df.groupby("preconditioner"):
-        group_sorted = group.sort_values("dim")
+    for prec, group in df.groupby("prec"):
+        group_sorted = group.sort_values("n")
         ax.plot(
-            group_sorted["dim"],
+            group_sorted["n"],
             group_sorted[metric],
             marker="o",
             linestyle="-",
-            label=pr,
+            label=prec,
         )
 
     if logx:
