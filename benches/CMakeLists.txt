@@ -42,3 +42,8 @@ dd_add_bench(bench_pcg_sequential
 dd_add_bench(bench_seq_as_blocks
   bench_seq_as_blocks.cpp
 )
+
+# Example 2: MPI additive Schwarz + coarse operator
+dd_add_bench(bench_mpi_as_coarse
+  bench_mpi_as_coarse.cpp
+)

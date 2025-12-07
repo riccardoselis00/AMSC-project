@@ -58,9 +58,8 @@ for i, b in enumerate(pivot.columns):
 plt.xticks(x + 1.5 * bar_width, pivot.index)
 plt.xlabel("Problem size n")
 plt.ylabel("Speedup vs Identity")
-# plt.title("Additive Schwarz Speedup over Identity Preconditioner")
+
 plt.legend()
-# plt.grid(axis="y", linestyle="--", alpha=0.5)
 
 plt.tight_layout()
 plt.show()
