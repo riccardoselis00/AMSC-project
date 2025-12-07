@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Create ONE image with two subplots:
 - LEFT: Strong scaling speedup
@@ -16,10 +15,6 @@ import matplotlib.pyplot as plt
 import sys
 from pathlib import Path
 
-
-# ------------------------------------------------------------
-# CSV Loader
-# ------------------------------------------------------------
 def load_data(csv_path):
     df = pd.read_csv(csv_path)
     df["n"] = df["n"].astype(int)
@@ -27,11 +22,6 @@ def load_data(csv_path):
     df["time_solve"] = df["time_solve"].astype(float)
     return df
 
-
-# ------------------------------------------------------------
-# STRONG SCALING: fixed N, vary #procs
-# speedup(p) = T(1) / T(p)
-# ------------------------------------------------------------
 def compute_strong_scaling(df):
     strong = {}
 
@@ -50,16 +40,9 @@ def compute_strong_scaling(df):
 
     return strong
 
-
-# ------------------------------------------------------------
-# WEAK SCALING: N proportional to #procs
-# efficiency(p) = T(1) / T(p)
-# Weak CSV should contain measurements for increasing N with p.
-# ------------------------------------------------------------
 def compute_weak_scaling(df):
     weak = {}
 
-    # baseline T(1) from weak CSV
     base = df[df["nprocs"] == 1]["time_solve"].values
     if len(base) == 0:
         print("WARNING: weak CSV missing nprocs=1 baseline")
@@ -74,14 +57,10 @@ def compute_weak_scaling(df):
     return weak
 
 
-# ------------------------------------------------------------
-# Plot 2 subpanels
-# ------------------------------------------------------------
 def plot_two_panels(strong, weak, out_path):
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(18, 7))
 
-    # ---------- STRONG SCALING ----------
     for N, data in strong.items():
         ax1.plot(
             data["procs"],
@@ -93,11 +72,11 @@ def plot_two_panels(strong, weak, out_path):
 
     ax1.set_title("Strong Scaling (Speedup vs #procs)")
     ax1.set_xlabel("# MPI Processes")
+    ax1.set_xscale("log", base=2)
     ax1.set_ylabel("Speedup = T1 / Tp")
     ax1.grid(True, linestyle="--", alpha=0.4)
     ax1.legend()
 
-    # ---------- WEAK SCALING ----------
     procs = sorted(weak.keys())
     eff = [weak[p] for p in procs]
 
@@ -105,6 +84,7 @@ def plot_two_panels(strong, weak, out_path):
 
     ax2.set_title("Weak Scaling (Efficiency vs #procs)")
     ax2.set_xlabel("# MPI Processes")
+    ax2.set_xscale("log", base=2)
     ax2.set_ylabel("Efficiency = T1 / Tp")
     ax2.grid(True, linestyle="--", alpha=0.4)
 
@@ -112,10 +92,6 @@ def plot_two_panels(strong, weak, out_path):
     fig.savefig(out_path, dpi=220)
     print(f"[OK] Saved: {out_path}")
 
-
-# ------------------------------------------------------------
-# Main
-# ------------------------------------------------------------
 def main():
     if len(sys.argv) != 3:
         print("Usage: python plot_scaling.py strong.csv weak.csv")

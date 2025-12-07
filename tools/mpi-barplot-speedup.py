@@ -127,6 +127,7 @@ def plot_grouped_bars(
     ax.set_xticklabels([str(n) for n in ns])
 
     ax.set_xlabel("Problem size n")
+    ax.set_xscale("log", base=2)
     ax.set_ylabel("Speedup vs AS (1 proc, no coarse)")
     ax.set_title(title)
     ax.legend()
