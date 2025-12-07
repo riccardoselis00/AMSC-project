@@ -2,7 +2,7 @@
 set -euo pipefail
 
 EXE=./build/benches/bench_pcg_sequential  
-OUT=results_seq_precs.csv        
+OUT=data/output/csv/results_seq_precs.csv        
 
 SIZES=(10000 20000 40000 80000 160000)
 
@@ -10,7 +10,7 @@ PRECS=("identity" "diag_jacobi" "blockjac" "as")
 
 BLOCK_SIZE=16
 OVERLAP=1
-TOL=1e-12
+TOL=1e-16
 MAXIT=500000
 
 echo "n,prec,iters,residual,time_setup,time_solve, total time" > "$OUT"
