@@ -47,3 +47,7 @@ dd_add_bench(bench_seq_as_blocks
 dd_add_bench(bench_mpi_as_coarse
   bench_mpi_as_coarse.cpp
 )
+
+dd_add_bench(physical_problem
+  physical_problem.cpp
+)

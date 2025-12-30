@@ -22,9 +22,7 @@ public:
     using MatrixSparse::gemv;
 
     MatrixCOO() = default;
-
     MatrixCOO(Index rows, Index cols) : m_rows(rows), m_cols(cols) {}
-
     MatrixCOO(Index rows, Index cols,
               std::vector<Index> row, std::vector<Index> col,
               std::vector<Scalar> val)
