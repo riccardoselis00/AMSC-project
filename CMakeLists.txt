@@ -42,6 +42,7 @@ add_library(dd_algebra
     src/preconditioner/additive_schwarz.cpp
     src/solver/pcg_mpi.cpp
     src/partitioner/partitioner.cpp
+    src/pde/pde.cpp
 )
 
 add_library(dd::algebra ALIAS dd_algebra)
@@ -88,6 +89,7 @@ if(DD_BUILD_TESTS)
   add_executable(testPreconditioner tests/testPreconditioner.cpp)
   add_executable(testPartitioner tests/testPartitioner.cpp)
   add_executable(testMPI tests/testMPI.cpp)
+  add_executable(testPDE tests/testPDE.cpp)
 
   target_link_libraries(testMatrixDense PRIVATE dd_algebra)
   target_link_libraries(testMatrixSparse PRIVATE dd_algebra)
@@ -95,6 +97,7 @@ if(DD_BUILD_TESTS)
   target_link_libraries(testPreconditioner PRIVATE dd_algebra)
   target_link_libraries(testPartitioner PRIVATE dd_algebra)
   target_link_libraries(testMPI PRIVATE dd_algebra)
+  target_link_libraries(testPDE PRIVATE dd_algebra)
 
   if(DD_ENABLE_MPI)
     target_link_libraries(testPartitioner PRIVATE MPI::MPI_CXX)
@@ -107,6 +110,7 @@ if(DD_BUILD_TESTS)
   add_test(NAME Preconditioner COMMAND testPreconditioner)
   add_test(NAME Partitioner COMMAND testPartitioner)
   add_test(NAME MPI COMMAND testMPI)
+  add_test(NAME PDE COMMAND testPDE)
 endif()
 
 # ================================================================
