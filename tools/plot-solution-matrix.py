@@ -154,7 +154,7 @@ def plot_grid_solution(d: int, Nx: int, grid, save: bool, outdir: str):
         plt.title(f"2D solution heatmap ({tag})")
         plt.colorbar(label="u")
         if save:
-            plt.savefig(os.path.join(outdir, f"grid_{tag}_heatmap.png"), dpi=180, bbox_inches="tight")
+            plt.savefig(os.path.join(outdir, f"grid_{tag}_heatmap.png"), dpi=180, bbox_inches="tight", colormap="turbo")
             plt.close()
         else:
             plt.show()
