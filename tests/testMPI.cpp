@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     // -------------------------------------------------------------------------
     // Global problem size
     // -------------------------------------------------------------------------
-    const int n_global = (argc > 1) ? std::atoi(argv[1]) : 20000;
+    const int n_global = (argc > 1) ? std::atoi(argv[1]) : 160000;
 
     if (rank == 0) {
         std::cout << "=== testMPI: PCG + AdditiveSchwarz (MPI + coarse) ===\n";
@@ -105,7 +105,7 @@ int main(int argc, char** argv)
     const int nparts  = 8;   // number of subdomains per rank
     const int overlap = 1;   // overlap in local DOFs
 
-    AdditiveSchwarz::Level level = AdditiveSchwarz::Level::OneLevel;
+    AdditiveSchwarz::Level level = AdditiveSchwarz::Level::TwoLevels;
 
     if (rank == 0) {
         std::cout << "Setting up Additive Schwarz (nparts=" << nparts
@@ -145,7 +145,7 @@ int main(int argc, char** argv)
         // MPI-aware PCG (works on local vectors; matrix passed by base ref)
         PCGSolverMPI solver(A_loc, &M_loc, comm, n_global, ls, le);
         solver.setMaxIters(500000);
-        solver.setTolerance(1e-16);
+        solver.setTolerance(1e-12);
 
         its = solver.solve(b_loc, x_loc);
     }

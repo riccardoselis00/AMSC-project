@@ -25,7 +25,7 @@ TOL=1e-12
 MAXIT=500000
 
 # Header
-echo "n,prec,nprocs,iters,residual,time_setup,time_solve,total_time" > "$OUT"
+echo "n,prec,nprocs,nprocs,iters,time_setup,time_solve,total_time" > "$OUT"
 
 for N in "${SIZES[@]}"; do
   for PREC in "${PRECS[@]}"; do

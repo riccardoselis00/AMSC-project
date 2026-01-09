@@ -63,7 +63,7 @@ static void ssor_local_block(const AdditiveSchwarz::LocalBlock& blk,
         // -------------------- Backward sweep -------------------
         std::copy(x, x + n, x_old.data());
 
-        for (int ii = n - 1; ii >= 0; --ii) {
+        for (int ii = n - 1; ii >= 0; --ii) {AS2 loses if it increases setup time a lot and/or increases time per iteration, and the iteration reduction is not enough.
             int i = ii;
             double sum  = b[i];
             double diag = 0.0;
@@ -212,15 +212,6 @@ void AdditiveSchwarz::setup(const MatrixSparse& A)
     }
     m_starts[static_cast<std::size_t>(m_nparts)] = static_cast<int>(m_n);
 
-    // m_rowToPart.assign(static_cast<std::size_t>(m_n), -1);
-    // for (int p = 0; p < m_nparts; ++p) {
-    //     int s = m_starts[static_cast<std::size_t>(p)];
-    //     int e = m_starts[static_cast<std::size_t>(p + 1)];
-    //     for (int i = s; i < e; ++i) {
-    //         m_rowToPart[static_cast<std::size_t>(i)] = p;
-    //     }
-    // }
-
     // Build *global* row -> part mapping for coarse space
     m_rowToPart.assign(static_cast<std::size_t>(m_n_global), -1);
 
@@ -296,37 +287,6 @@ void AdditiveSchwarz::setup(const MatrixSparse& A)
         });
     }
 
-    // // NEW: build coarse operator if two-level AS is requested
-    // if (m_level == Level::TwoLevels) {
-    //     // ncoarse = number of parts
-    //     m_ncoarse = m_nparts;
-
-    //     // Dense ncoarse x ncoarse matrix, row-major, initialized to 0
-    //     m_A0.assign(static_cast<std::size_t>(m_ncoarse * m_ncoarse), 0.0);
-
-    //     // Assemble A0(i,j) = sum_{r in part i, c in part j} A(r,c)
-    //     A.forEachNZ([&](Index r, Index c, Scalar v) {
-    //         int ri = static_cast<int>(r);
-    //         int ci = static_cast<int>(c);
-
-    //         int pi = m_rowToPart[static_cast<std::size_t>(ri)];
-    //         int pj = m_rowToPart[static_cast<std::size_t>(ci)];
-
-    //         // accumulate into dense coarse matrix
-    //         m_A0[static_cast<std::size_t>(pi * m_ncoarse + pj)]
-    //             += static_cast<double>(v);
-    //     });
-
-    //     // Allocate work vectors for coarse residual and solution
-    //     m_r0.assign(static_cast<std::size_t>(m_ncoarse), 0.0);
-    //     m_y0.assign(static_cast<std::size_t>(m_ncoarse), 0.0);
-
-
-
-        // (Optional but recommended)
-        // You can factorize m_A0 in-place once here with a simple Cholesky
-        // and then use it in apply(). For now we can keep a simple dense solve
-        // inside solveCoarse().
 
 
             // 4) Build coarse operator A0 if two-level AS is requested
