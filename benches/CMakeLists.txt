@@ -51,3 +51,11 @@ dd_add_bench(bench_mpi_as_coarse
 dd_add_bench(physical_problem
   physical_problem.cpp
 )
+
+dd_add_bench(bench_baseline_identity_solver
+  bench_baseline_identity_solver.cpp
+)
+
+dd_add_bench(bench_final_identity_vs_AS2
+  bench_final_identity_vs_AS2.cpp
+)

@@ -99,7 +99,7 @@ def load_case(base_dir: str, d: int, Nx: int):
 # ------------------------- Matrix plotting (spy) -------------------------
 
 def plot_matrix_spy_ax(ax, A, d: int, Nx: int, max_spy_n: int = 20000):
-    ax.set_title(f"Spy A (d={d}, Nx={Nx})")
+    ax.set_title(f"d={d}")
     ax.set_xlabel("j")
     ax.set_ylabel("i")
 
@@ -113,10 +113,10 @@ def plot_matrix_spy_ax(ax, A, d: int, Nx: int, max_spy_n: int = 20000):
     print(f"[dim={d}] A: shape={A.shape}, nnz={nnz}")
 
     if n <= max_spy_n:
-        ax.spy(A, markersize=0.7)
+        ax.spy(A, markersize=1.2)
     else:
         m = max_spy_n
-        ax.spy(A[:m, :m], markersize=0.7)
+        ax.spy(A[:m, :m], markersize=1.2)
         ax.set_title(f"Spy A[:{m},:{m}] (d={d}, Nx={Nx})")
 
 

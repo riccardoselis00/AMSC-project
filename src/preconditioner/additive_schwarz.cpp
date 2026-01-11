@@ -63,7 +63,7 @@ static void ssor_local_block(const AdditiveSchwarz::LocalBlock& blk,
         // -------------------- Backward sweep -------------------
         std::copy(x, x + n, x_old.data());
 
-        for (int ii = n - 1; ii >= 0; --ii) {AS2 loses if it increases setup time a lot and/or increases time per iteration, and the iteration reduction is not enough.
+        for (int ii = n - 1; ii >= 0; --ii) {
             int i = ii;
             double sum  = b[i];
             double diag = 0.0;

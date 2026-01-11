@@ -152,7 +152,7 @@ static void run_case(int dim, int Nx) {
 }
 
 int main() {
-    const int Nx = 40;
+    const int Nx = 5;
     run_case(1, Nx);
     run_case(2, Nx);
     run_case(3, Nx);
