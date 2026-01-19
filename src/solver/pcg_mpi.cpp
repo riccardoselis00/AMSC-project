@@ -2,96 +2,80 @@
 
 #include <cmath>
 #include <stdexcept>
-
-// -----------------------------------------------------------------------------
-// Global dot-product and 2-norm using MPI_Allreduce
-// -----------------------------------------------------------------------------
-// static inline double dot_global(const std::vector<double>& a,
-//                                 const std::vector<double>& b,
-//                                 MPI_Comm comm)
-// {
-//     if (a.size() != b.size())
-//         throw std::runtime_error("dot_global: size mismatch");
-
-//     double local = 0.0;
-//     for (std::size_t i = 0; i < a.size(); ++i)
-//         local += a[i] * b[i];
-
-//     double global = 0.0;
-//     MPI_Allreduce(&local, &global, 1, MPI_DOUBLE, MPI_SUM, comm);
-//     return global;
-// }
-
-// static inline double nrm2_global(const std::vector<double>& a,
-//                                  MPI_Comm comm)
-// {
-//     double local = 0.0;
-//     for (double v : a) local += v * v;
-
-//     double global = 0.0;
-//     MPI_Allreduce(&local, &global, 1, MPI_DOUBLE, MPI_SUM, comm);
-//     return std::sqrt(global);
-// }
+#include <iostream>
 
 // -----------------------------------------------------------------------------
 // Constructor
 // -----------------------------------------------------------------------------
-
-PCGSolverMPI::PCGSolverMPI(const MatrixSparse&      A_loc,
-                           const Preconditioner*    M,
-                           MPI_Comm                 comm,
-                           int                      n_global,
-                           int                      ls,
-                           int                      le)
-    : Solver(A_loc, const_cast<Preconditioner*>(M)),  // <-- FIX HERE
-    A_(A_loc),
-    M_(M),
-    comm_(comm),
-    n_global_(n_global),
-    ls_(ls),
-    le_(le),
-    n_loc_(le - ls)
+PCGSolverMPI::PCGSolverMPI(const MatrixSparse& A_loc,
+                           Preconditioner*     M,
+                           MPI_Comm            comm,
+                           Index               n_global,
+                           Index               ls,
+                           Index               le)
+  : Solver(A_loc, M)          // <-- base class has no default ctor
+  , A_(A_loc)
+  , M_(M)
+  , comm_(comm)
+  , rank_(0)
+  , size_(1)
+  , n_global_(n_global)
+  , ls_(ls)
+  , le_(le)
+  , n_loc_(le - ls)
 {
     MPI_Comm_rank(comm_, &rank_);
     MPI_Comm_size(comm_, &size_);
 
+    // Optional safety (also avoids sign warnings now that Index is used):
     if (A_.rows() != n_loc_ || A_.cols() != n_loc_) {
-        throw std::runtime_error("PCGSolverMPI: local matrix size mismatch");
+        throw std::runtime_error("PCGSolverMPI: A_loc dimensions mismatch with n_loc");
     }
 }
 
 std::size_t PCGSolverMPI::solve(const std::vector<double>& b_loc,
                                 std::vector<double>&       x_loc)
 {
-    if ((int)b_loc.size() != n_loc_) {
+    const std::size_t n = static_cast<std::size_t>(n_loc_);
+
+    if (b_loc.size() != n) {
         throw std::runtime_error("PCGSolverMPI::solve: b_loc has wrong size");
     }
 
-    x_loc.resize(static_cast<std::size_t>(n_loc_), 0.0);
+    if (x_loc.size() != n) {
+        x_loc.assign(n, 0.0);
+    } else {
+        std::fill(x_loc.begin(), x_loc.end(), 0.0);
+    }
 
     // Local working vectors (size = n_loc_)
-    std::vector<double> r_loc(n_loc_);
-    std::vector<double> z_loc(n_loc_);
-    std::vector<double> p_loc(n_loc_);
-    std::vector<double> q_loc(n_loc_);
+    std::vector<double> r_loc(n);
+    std::vector<double> z_loc(n);
+    std::vector<double> p_loc(n);
+    std::vector<double> q_loc(n);
 
     // Helper lambdas for global norms / dot products
-    auto global_dot = [this](const std::vector<double>& x,
-                             const std::vector<double>& y) -> double {
+    auto global_dot = [this, n](const std::vector<double>& x,
+                               const std::vector<double>& y) -> double {
+        if (x.size() != n || y.size() != n) {
+            throw std::runtime_error("PCGSolverMPI::global_dot: size mismatch");
+        }
         double local = 0.0;
-        for (int i = 0; i < n_loc_; ++i) {
-            local += x[static_cast<std::size_t>(i)] *
-                     y[static_cast<std::size_t>(i)];
+        for (std::size_t i = 0; i < n; ++i) {
+            local += x[i] * y[i];
         }
         double global = 0.0;
         MPI_Allreduce(&local, &global, 1, MPI_DOUBLE, MPI_SUM, comm_);
         return global;
     };
 
-    auto global_norm2 = [&](const std::vector<double>& x) -> double {
+    auto global_norm2 = [this, n](const std::vector<double>& x) -> double {
+        if (x.size() != n) {
+            throw std::runtime_error("PCGSolverMPI::global_norm2: size mismatch");
+        }
         double local = 0.0;
-        for (int i = 0; i < n_loc_; ++i) {
-            double v = x[static_cast<std::size_t>(i)];
+        for (std::size_t i = 0; i < n; ++i) {
+            const double v = x[i];
             local += v * v;
         }
         double global = 0.0;
@@ -129,17 +113,19 @@ std::size_t PCGSolverMPI::solve(const std::vector<double>& b_loc,
         if (rank_ == 0) {
             std::cout << "PCGSolverMPI: already converged.\n";
         }
+        converged_ = true;
+        last_rnorm_ = global_norm2(r_loc);
         return its_;
     }
 
-    const int maxIts = maxIters();         // from Solver base
+    const std::size_t maxIts = static_cast<std::size_t>(maxIters()); // from Solver base
 
     for (its_ = 0; its_ < maxIts; ++its_) {
 
         // q = A p
-        A_.gemv(p_loc, q_loc);   // A_loc * p_loc
+        A_.gemv(p_loc, q_loc);   // local matvec
 
-        double denom = global_dot(p_loc, q_loc);
+        const double denom = global_dot(p_loc, q_loc);
         if (std::abs(denom) < tiny) {
             if (rank_ == 0) {
                 std::cerr << "PCGSolverMPI: breakdown (p^T A p ~ 0)\n";
@@ -147,30 +133,25 @@ std::size_t PCGSolverMPI::solve(const std::vector<double>& b_loc,
             break;
         }
 
-        double alpha = rho / denom;
+        const double alpha = rho / denom;
 
         // x_{k+1} = x_k + alpha p_k
-        for (int i = 0; i < n_loc_; ++i) {
-            x_loc[static_cast<std::size_t>(i)] += alpha *
-                                                   p_loc[static_cast<std::size_t>(i)];
+        for (std::size_t i = 0; i < n; ++i) {
+            x_loc[i] += alpha * p_loc[i];
         }
 
         // r_{k+1} = r_k - alpha q_k
-        for (int i = 0; i < n_loc_; ++i) {
-            r_loc[static_cast<std::size_t>(i)] -= alpha *
-                                                   q_loc[static_cast<std::size_t>(i)];
+        for (std::size_t i = 0; i < n; ++i) {
+            r_loc[i] -= alpha * q_loc[i];
         }
 
         // Check convergence
-        relRes   = global_norm2(r_loc) / (normb > 0.0 ? normb : 1.0);
-        last_rel_ = relRes;
-
-        if (rank_ == 0) {
-            // Optional: debug prints
-            // std::cout << "Iter " << its_+1 << ", relRes = " << relRes << "\n";
-        }
+        relRes     = global_norm2(r_loc) / (normb > 0.0 ? normb : 1.0);
+        last_rel_  = relRes;
+        last_rnorm_ = global_norm2(r_loc);
 
         if (relRes < eps) {
+            converged_ = true;
             break;
         }
 
@@ -178,7 +159,7 @@ std::size_t PCGSolverMPI::solve(const std::vector<double>& b_loc,
         if (M_) M_->apply(r_loc, z_loc);
         else    z_loc = r_loc;
 
-        double rho_next = global_dot(r_loc, z_loc);
+        const double rho_next = global_dot(r_loc, z_loc);
         if (std::abs(rho) < tiny) {
             if (rank_ == 0) {
                 std::cerr << "PCGSolverMPI: breakdown (rho ~ 0)\n";
@@ -186,22 +167,23 @@ std::size_t PCGSolverMPI::solve(const std::vector<double>& b_loc,
             break;
         }
 
-        double beta = rho_next / rho;
+        const double beta = rho_next / rho;
 
         // p_{k+1} = z_{k+1} + beta p_k
-        for (int i = 0; i < n_loc_; ++i) {
-            p_loc[static_cast<std::size_t>(i)] =
-                z_loc[static_cast<std::size_t>(i)] +
-                beta * p_loc[static_cast<std::size_t>(i)];
+        for (std::size_t i = 0; i < n; ++i) {
+            p_loc[i] = z_loc[i] + beta * p_loc[i];
         }
 
         rho = rho_next;
     }
 
     if (rank_ == 0) {
-        std::cout << "Converged in " << its_
-                  << " iterations, final relative residual = "
-                  << last_rel_ << ", tolerance = " << eps << "\n";
+        std::cout << "PCGSolverMPI: iterations = " << its_
+                  << ", final relative residual = " << last_rel_
+                  << ", tolerance = " << eps
+                  << ", converged = " << (converged_ ? "yes" : "no")
+                  << "\n";
     }
+
     return its_;
 }

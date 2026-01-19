@@ -77,7 +77,7 @@ std::size_t PCGSolver::solve(const std::vector<Scalar>& b,
         for (std::size_t i = 0; i < n; ++i) p[i] = z[i] + beta * p[i];
 
         rho = rho_next;
-        const double tol = tolerance();
+        // const double tol = tolerance();
     }
 
     printConvergenceInfo(its_, last_rel_, tol);

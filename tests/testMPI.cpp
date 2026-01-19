@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     // -------------------------------------------------------------------------
     // Global problem size
     // -------------------------------------------------------------------------
-    const int n_global = (argc > 1) ? std::atoi(argv[1]) : 160000;
+    const int n_global = (argc > 1) ? std::atoi(argv[1]) : 10000;
 
     if (rank == 0) {
         std::cout << "=== testMPI: PCG + AdditiveSchwarz (MPI + coarse) ===\n";

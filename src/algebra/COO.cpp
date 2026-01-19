@@ -178,7 +178,7 @@ bool MatrixCOO::write_COO(const std::string& filename) const
     FILE* f = std::fopen(filename.c_str(), "w");
     if (!f) return false;
 
-    std::fprintf(f, "%%%MatrixMarket matrix coordinate real general\n");
+    std::fprintf(f, "%%MatrixMarket matrix coordinate real general\n");
 
     std::fprintf(f, "%zu %zu %zu\n",
                  static_cast<std::size_t>(rows()),

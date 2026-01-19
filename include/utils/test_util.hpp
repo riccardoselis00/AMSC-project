@@ -59,18 +59,26 @@ inline void expect_throw(Fn&& fn,
         ++g_fail();
         std::cerr << func << ": expect_throw failed: " << msg
                   << " (no exception)\n";
+        return;
     } catch (const E&) {
-
-    } catch (const std::exception& ex) {
-        ++g_fail();
-        std::cerr << func << ": expect_throw failed: " << msg
-                  << " (caught different exception: " << ex.what() << ")\n";
+        // OK: expected exception type
+        return;
     } catch (...) {
+        // Something else was thrown (maybe std::exception, maybe not)
         ++g_fail();
-        std::cerr << func << ": expect_throw failed: " << msg
-                  << " (caught non-std exception)\n";
+        try {
+            throw; // rethrow to inspect
+        } catch (const std::exception& ex) {
+            std::cerr << func << ": expect_throw failed: " << msg
+                      << " (caught different exception: " << ex.what() << ")\n";
+        } catch (...) {
+            std::cerr << func << ": expect_throw failed: " << msg
+                      << " (caught non-std exception)\n";
+        }
+        return;
     }
 }
+
 
 inline int summarize_and_exit()
 {

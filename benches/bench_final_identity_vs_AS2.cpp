@@ -1,15 +1,16 @@
+// bench_final_identity_vs_AS2.cpp
 #include <mpi.h>
 
 #include <iostream>
 #include <vector>
 #include <string>
 #include <array>
-#include <chrono>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <cstdlib>
 #include <algorithm>
+#include <cmath>
 
 #include "pde/pde.hpp"
 #include "algebra/COO.hpp"
@@ -108,15 +109,25 @@ static void usage(const char* prog) {
       "  mpirun -np P " << prog << " --dim=1|2|3  --n=Nx,Ny,Nz (Ny/Nz optional)\n\n"
       "Options:\n"
       "  --prec       identity | as | as2     (default as2)\n"
-      "  --nparts     subdomains per rank     (default 32)  (same meaning as your MPI bench block_size)\n"
+      "  --nparts     subdomains per rank     (default 32)\n"
       "  --overlap    overlap size            (default 1)\n"
       "  --tol        PCG tolerance           (default 1e-12)\n"
       "  --maxit      PCG max iterations      (default 500000)\n"
       "  --repeat     repeat solve (best+avg) (default 1)\n"
-      "  --mu         diffusion coefficient   (default 1.0)\n"
-      "  --c          reaction coefficient    (default 0.0)\n"
+      "  --mu         diffusion coefficient (const mode) (default 1.0)\n"
+      "  --c          reaction coefficient (const)       (default 0.0)\n"
       "  --csv        output CSV path         (default ../data/output/csv/final_mpi_physical.csv)\n"
-      "  --append     append to CSV (else overwrite)\n";
+      "  --append     append to CSV (else overwrite)\n"
+      "\n"
+      "Difficulty knobs (variable diffusion / forcing):\n"
+      "  --mu-type    const|layer|checker|inclusion (default const)\n"
+      "  --mu-min     minimum diffusion            (default 1e-4)\n"
+      "  --mu-max     maximum diffusion            (default 1.0)\n"
+      "  --mu-pos     layer interface position x   (default 0.5)\n"
+      "  --mu-cells   checker cells per axis       (default 8)\n"
+      "  --mu-radius  inclusion radius             (default 0.25)\n"
+      "  --f-type     const|sine|checker           (default const)\n"
+      "  --f-amp      amplitude for f (non-const)  (default 1.0)\n";
 }
 
 int main(int argc, char** argv) {
@@ -133,7 +144,7 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    // ---- parse physical problem (same as baseline) ----
+    // ---- parse physical problem ----
     const int dim = std::atoi(get_opt(argc, argv, "dim", "0").c_str());
     const int Nx  = std::atoi(get_opt(argc, argv, "Nx",  "0").c_str());
     const std::string n_str = get_opt(argc, argv, "n", "");
@@ -153,8 +164,11 @@ int main(int argc, char** argv) {
     const int maxit  = std::atoi(get_opt(argc, argv, "maxit", "500000").c_str());
     const int repeat = std::max(1, std::atoi(get_opt(argc, argv, "repeat", "1").c_str()));
 
-    const double mu = std::atof(get_opt(argc, argv, "mu", "1.0").c_str());
-    const double c  = std::atof(get_opt(argc, argv, "c",  "0.0").c_str());
+    // constant reaction (NOTE: large c often makes SPD problem easier, so default stays 0)
+    const double c_const = std::atof(get_opt(argc, argv, "c", "0.0").c_str());
+
+    // const mu fallback (old behavior)
+    const double mu_const = std::atof(get_opt(argc, argv, "mu", "1.0").c_str());
 
     const std::string prec = get_opt(argc, argv, "prec", "as2"); // identity|as|as2
     const int nparts  = std::atoi(get_opt(argc, argv, "nparts", "32").c_str());
@@ -181,17 +195,83 @@ int main(int argc, char** argv) {
         if (need_header) write_csv_header(os);
     }
 
-    // ---- Assemble physical problem (replicated on all ranks, simplest & consistent) ----
+    // ---- Assemble physical problem (replicated on all ranks) ----
     std::array<double,3> a = {0.0, 0.0, 0.0};
     std::array<double,3> b = {1.0, 1.0, 1.0};
-    auto f = [](const Coord3&) { return 1.0; };
+
+    // Dirichlet boundary: keep 0 for SPD and comparability
     auto g = [](const Coord3&) { return 0.0; };
+
+    // ---------------- Variable diffusion mu(x) knobs ----------------
+    const std::string mu_type = get_opt(argc, argv, "mu-type", "const"); // const|layer|checker|inclusion
+    const double mu_min  = std::atof(get_opt(argc, argv, "mu-min", "1e-4").c_str());
+    const double mu_max  = std::atof(get_opt(argc, argv, "mu-max", "1.0").c_str());
+    const double mu_pos  = std::atof(get_opt(argc, argv, "mu-pos", "0.5").c_str());
+    const int    mu_cells = std::max(1, std::atoi(get_opt(argc, argv, "mu-cells", "8").c_str()));
+    const double mu_radius = std::atof(get_opt(argc, argv, "mu-radius", "0.25").c_str());
+
+    // mu(x): domain is [0,1]^d in this benchmark
+    // Goal: allow strong coefficient contrasts -> harder for identity, AS2 more useful.
+    CoeffFn mu_fun = [&](const Coord3& x) -> double {
+        if (mu_type == "const") {
+            return mu_const;
+        }
+        if (mu_type == "layer") {
+            // interface normal to x-axis
+            return (x[0] < mu_pos) ? mu_min : mu_max;
+        }
+        if (mu_type == "checker") {
+            const int ix = (int)std::floor(x[0] * mu_cells);
+            const int iy = (dim >= 2) ? (int)std::floor(x[1] * mu_cells) : 0;
+            const int iz = (dim >= 3) ? (int)std::floor(x[2] * mu_cells) : 0;
+            const int parity = (ix + iy + iz) & 1;
+            return (parity == 0) ? mu_min : mu_max;
+        }
+        if (mu_type == "inclusion") {
+            const double dx = x[0] - 0.5;
+            const double dy = (dim >= 2) ? (x[1] - 0.5) : 0.0;
+            const double dz = (dim >= 3) ? (x[2] - 0.5) : 0.0;
+            const double r2 = dx*dx + dy*dy + dz*dz;
+            return (r2 <= mu_radius*mu_radius) ? mu_min : mu_max;
+        }
+        // unknown -> fallback
+        return mu_const;
+    };
+
+    // reaction coefficient c(x): keep constant for now
+    CoeffFn c_fun = [&](const Coord3&) -> double { return c_const; };
+
+    // ---------------- Forcing f(x) knobs ----------------
+    const std::string f_type = get_opt(argc, argv, "f-type", "const"); // const|sine|checker
+    const double f_amp = std::atof(get_opt(argc, argv, "f-amp", "1.0").c_str());
+
+    FieldFn f = [&](const Coord3& x) -> double {
+        if (f_type == "const") {
+            return 1.0;
+        }
+        if (f_type == "sine") {
+            const double s1 = std::sin(2.0 * M_PI * x[0]);
+            const double s2 = (dim >= 2) ? std::sin(2.0 * M_PI * x[1]) : 0.0;
+            const double s3 = (dim >= 3) ? std::sin(2.0 * M_PI * x[2]) : 0.0;
+            return 1.0 + f_amp * (s1 + s2 + s3) / (double)dim;
+        }
+        if (f_type == "checker") {
+            // reuse mu_cells for a forcing checker
+            const int ix = (int)std::floor(x[0] * mu_cells);
+            const int iy = (dim >= 2) ? (int)std::floor(x[1] * mu_cells) : 0;
+            const int iz = (dim >= 3) ? (int)std::floor(x[2] * mu_cells) : 0;
+            const int parity = (ix + iy + iz) & 1;
+            return (parity == 0) ? 1.0 : (1.0 + f_amp);
+        }
+        return 1.0;
+    };
 
     MPI_Barrier(comm);
     double tA0 = MPI_Wtime();
 
-    PDE p(dim, n, a, b, mu, c, f, g);
-    auto [A_global, rhs_global] = p.assembleCOO(); // MatrixCOO + vector<double>
+    // NOTE: requires the PDE constructor overload that accepts CoeffFn mu_fun, CoeffFn c_fun
+    PDE p(dim, n, a, b, mu_fun, c_fun, f, g);
+    auto [A_global, rhs_global] = p.assembleCOO();
 
     MPI_Barrier(comm);
     double tA1 = MPI_Wtime();
@@ -208,16 +288,15 @@ int main(int argc, char** argv) {
     const int le    = part.le();
     const int n_loc = part.nLocal();
 
-    // ---- Build local matrix (same style as your MPI Poisson bench: local-local restriction) ----
+    // ---- Build local matrix (local-local restriction, consistent with your earlier MPI bench) ----
     MatrixCOO A_loc(static_cast<MatrixCOO::Index>(n_loc),
                     static_cast<MatrixCOO::Index>(n_loc));
 
-    // reserve heuristic (stencil-like problems)
     A_loc.reserve(7u * static_cast<std::size_t>(n_loc));
 
     A_global.forEachNZ([&](MatrixCOO::Index i, MatrixCOO::Index j, MatrixCOO::Scalar v) {
-        int gi = static_cast<int>(i);
-        int gj = static_cast<int>(j);
+        const int gi = static_cast<int>(i);
+        const int gj = static_cast<int>(j);
         if (gi >= ls && gi < le && gj >= ls && gj < le) {
             const int li = gi - ls;
             const int lj = gj - ls;
@@ -290,8 +369,8 @@ int main(int argc, char** argv) {
         MPI_Barrier(comm);
         double t1 = MPI_Wtime();
 
-        double t_local = t1 - t0;
-        double t_rep   = 0.0;
+        const double t_local = t1 - t0;
+        double t_rep = 0.0;
         MPI_Reduce(&t_local, &t_rep, 1, MPI_DOUBLE, MPI_MAX, 0, comm);
 
         if (rank == 0) {
@@ -300,9 +379,9 @@ int main(int argc, char** argv) {
         }
     }
 
-    double solve_avg = (rank == 0) ? (solve_sum / std::max(1, repeat)) : 0.0;
+    const double solve_avg = (rank == 0) ? (solve_sum / std::max(1, repeat)) : 0.0;
 
-    // totals (rank 0 only)
+    // ---- totals + CSV (rank 0 only) ----
     if (rank == 0) {
         const double total_best = t_assemble + time_setup + solve_best;
         const double total_avg  = t_assemble + time_setup + solve_avg;
@@ -329,6 +408,7 @@ int main(int argc, char** argv) {
            << total_avg
            << "\n";
 
+        // One-line stdout summary (kept close to previous style)
         std::cout << dim << ","
                   << n[0] << "," << n[1] << "," << n[2] << ","
                   << n_global << "," << nnz_global << ","
