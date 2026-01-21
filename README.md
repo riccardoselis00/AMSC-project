@@ -3,11 +3,9 @@
 ## Introduction
 
 This repository contains the final **Domain Decomposition** project developed for the **AMSC course (2025–26)**. The project investigates how the solution of large **sparse linear systems**—typically produced by finite-difference discretizations of **elliptic PDEs**—can be accelerated and scaled across multiple processors using **algebraic domain decomposition** techniques.
-$$
-\begin{cases}
+$$\begin{cases}
 -\mu\,\Delta u(\mathbf{x}) + c\,u(\mathbf{x}) = f(\mathbf{x}), & \mathbf{x}\in\Omega \\ u(\mathbf{x}) = g(\mathbf{x}), & \mathbf{x}\in\partial\Omega,
-\end{cases}
-$$
+\end{cases}$$
 
 ![Solution 1D/2D/3D](data/input/output/images//solution-1_2_3_d.png)
 
