@@ -1,0 +1,10 @@
+<map id="BlockRowPartitioner::nLocal" name="BlockRowPartitioner::nLocal">
+<area shape="rect" id="Node000001" title=" " alt="" coords="412,33,565,73"/>
+<area shape="rect" id="Node000002" href="$classBlockRowPartitioner.html#a57a8c44ab40e4364a653c061e78063df" title=" " alt="" coords="5,5,159,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="409,33,364,24,257,18,159,21,159,16,257,13,364,19,410,27"/>
+<area shape="rect" id="Node000003" href="$classBlockRowPartitioner.html#ae218f7fc6d6dfc737bdafd41fbe3de89" title=" " alt="" coords="209,33,362,73"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="398,56,363,56,363,51,398,51"/>
+<area shape="rect" id="Node000004" href="$classBlockRowPartitioner.html#a8d0b15a5b9701f16cf409aea15e45c1b" title=" " alt="" coords="207,97,364,137"/>
+<area shape="poly" id="edge4_Node000001_Node000004" title=" " alt="" coords="412,80,350,100,349,95,410,75"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="194,44,159,39,160,33,195,38"/>
+</map>

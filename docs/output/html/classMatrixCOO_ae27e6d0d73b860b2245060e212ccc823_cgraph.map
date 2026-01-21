@@ -1,0 +1,10 @@
+<map id="MatrixCOO::axpy" name="MatrixCOO::axpy">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,56,139,81"/>
+<area shape="rect" id="Node000002" href="$classMatrixCOO.html#acb85537d1a3ee09576d4cd582ec745e3" title=" " alt="" coords="199,5,325,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="120,53,200,32,201,37,121,58"/>
+<area shape="rect" id="Node000003" href="$classMatrixCOO.html#a0a522276b0ce8dd89c9caacb818a85b3" title=" " alt="" coords="385,81,509,107"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,70,372,86,371,92,138,76"/>
+<area shape="rect" id="Node000004" href="$classMatrixCOO.html#af45633ac921e7146dd956034239379a6" title=" " alt="" coords="187,107,337,132"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="121,79,201,100,200,106,120,84"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="337,106,371,102,372,107,338,112"/>
+</map>

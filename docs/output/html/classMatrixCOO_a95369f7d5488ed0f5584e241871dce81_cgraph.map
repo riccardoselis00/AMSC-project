@@ -1,0 +1,9 @@
+<map id="MatrixCOO::Poisson2D" name="MatrixCOO::Poisson2D">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,175,56"/>
+<area shape="rect" id="Node000002" href="$classMatrixCOO.html#acb85537d1a3ee09576d4cd582ec745e3" title=" " alt="" coords="235,5,361,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="175,30,221,25,222,30,175,36"/>
+<area shape="rect" id="Node000003" href="$classMatrixCOO.html#af45633ac921e7146dd956034239379a6" title=" " alt="" coords="223,55,373,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="175,50,209,54,209,60,175,56"/>
+<area shape="rect" id="Node000004" href="$classMatrixCOO.html#a0a522276b0ce8dd89c9caacb818a85b3" title=" " alt="" coords="421,55,545,80"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="374,65,408,65,408,70,374,70"/>
+</map>

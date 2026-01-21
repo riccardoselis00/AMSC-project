@@ -1,0 +1,23 @@
+<map id="include/preconditioner/block_jacobi.hpp" name="include/preconditioner/block_jacobi.hpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="66,5,233,45"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="27,240,90,265"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="80,48,45,67,30,80,18,95,11,111,8,128,14,164,28,199,44,227,40,230,23,201,8,166,3,128,6,109,14,92,26,76,42,62,77,43"/>
+<area shape="rect" id="Node000003" href="$preconditioner_8hpp.html" title=" " alt="" coords="29,93,270,119"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="152,46,152,79,147,79,147,46"/>
+<area shape="rect" id="Node000005" href="$matrixSparse_8hpp.html" title=" " alt="" coords="199,167,390,192"/>
+<area shape="poly" id="edge12_Node000001_Node000005" title=" " alt="" coords="216,43,253,63,284,92,296,122,299,153,294,153,291,123,279,95,250,67,213,48"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="144,121,75,230,71,227,140,118"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="114,240,185,265"/>
+<area shape="poly" id="edge4_Node000003_Node000004" title=" " alt="" coords="152,119,152,226,147,226,147,119"/>
+<area shape="poly" id="edge5_Node000003_Node000005" title=" " alt="" coords="174,116,260,158,258,163,172,121"/>
+<area shape="poly" id="edge7_Node000005_Node000002" title=" " alt="" coords="258,195,104,241,102,235,256,189"/>
+<area shape="poly" id="edge6_Node000005_Node000004" title=" " alt="" coords="272,194,186,236,184,232,270,190"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="404,240,481,265"/>
+<area shape="poly" id="edge8_Node000005_Node000006" title=" " alt="" coords="320,190,407,232,405,236,317,194"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="506,240,593,265"/>
+<area shape="poly" id="edge9_Node000005_Node000007" title=" " alt="" coords="336,189,496,234,495,239,335,195"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="209,240,268,265"/>
+<area shape="poly" id="edge10_Node000005_Node000008" title=" " alt="" coords="288,194,258,231,254,228,283,191"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="293,240,379,265"/>
+<area shape="poly" id="edge11_Node000005_Node000009" title=" " alt="" coords="304,191,325,227,320,229,299,194"/>
+</map>

@@ -1,0 +1,21 @@
+<map id="include/preconditioner/identity.hpp" name="include/preconditioner/identity.hpp">
+<area shape="rect" id="Node000001" title=" " alt="" coords="33,5,200,45"/>
+<area shape="rect" id="Node000002" href="$preconditioner_8hpp.html" title=" " alt="" coords="45,93,188,119"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="119,46,119,79,114,79,114,46"/>
+<area shape="rect" id="Node000003" title=" " alt="" coords="5,240,68,265"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="112,120,52,229,47,227,108,118"/>
+<area shape="rect" id="Node000004" title=" " alt="" coords="92,240,163,265"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="120,119,128,226,123,226,115,119"/>
+<area shape="rect" id="Node000005" href="$matrixSparse_8hpp.html" title=" " alt="" coords="155,167,345,192"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="139,116,217,158,215,162,137,121"/>
+<area shape="poly" id="edge6_Node000005_Node000003" title=" " alt="" coords="217,195,82,239,80,234,215,189"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="232,194,160,235,158,231,229,190"/>
+<area shape="rect" id="Node000006" title=" " alt="" coords="382,240,459,265"/>
+<area shape="poly" id="edge7_Node000005_Node000006" title=" " alt="" coords="278,190,381,232,379,237,276,194"/>
+<area shape="rect" id="Node000007" title=" " alt="" coords="484,240,571,265"/>
+<area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="295,189,471,234,470,239,294,195"/>
+<area shape="rect" id="Node000008" title=" " alt="" coords="187,240,246,265"/>
+<area shape="poly" id="edge9_Node000005_Node000008" title=" " alt="" coords="247,193,230,229,225,227,242,191"/>
+<area shape="rect" id="Node000009" title=" " alt="" coords="271,240,357,265"/>
+<area shape="poly" id="edge10_Node000005_Node000009" title=" " alt="" coords="263,191,297,228,293,232,259,194"/>
+</map>

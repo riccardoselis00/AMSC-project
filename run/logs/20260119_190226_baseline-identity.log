@@ -1,0 +1,66 @@
+== Baseline sweep ==
+EXE    : /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/build/benches/bench_baseline_identity_solver
+OUT    : /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+TOL    : 1e-12
+MAXIT  : 500000
+REPEAT : 1
+MU,C   : 1.0, 0.0
+
+Running: dim=1 --Nx=2000
+Running baseline PCG+Identity: dim=1 n=(2000,1,1) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 1000 iterations, final residual = 4.59741e-15, tolerance = 1e-12
+  unknowns=2000 nnz=5998 iters=1000 assemble=0.000212 s solve(best)=0.020547 s solve(avg)=0.020547 s total=0.020772 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=1 --Nx=5000
+Running baseline PCG+Identity: dim=1 n=(5000,1,1) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 2500 iterations, final residual = 1.18683e-14, tolerance = 1e-12
+  unknowns=5000 nnz=14998 iters=2500 assemble=0.000790 s solve(best)=0.092891 s solve(avg)=0.092891 s total=0.093732 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=1 --Nx=10000
+Running baseline PCG+Identity: dim=1 n=(10000,1,1) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 5000 iterations, final residual = 2.55246e-14, tolerance = 1e-12
+  unknowns=10000 nnz=29998 iters=5000 assemble=0.000982 s solve(best)=0.329457 s solve(avg)=0.329457 s total=0.330566 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=2 --Nx=50
+Running baseline PCG+Identity: dim=2 n=(50,50,1) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 112 iterations, final residual = 9.51765e-13, tolerance = 1e-12
+  unknowns=2500 nnz=12300 iters=112 assemble=0.000332 s solve(best)=0.003678 s solve(avg)=0.003678 s total=0.004026 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=2 --Nx=100
+Running baseline PCG+Identity: dim=2 n=(100,100,1) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 225 iterations, final residual = 8.02862e-13, tolerance = 1e-12
+  unknowns=10000 nnz=49600 iters=225 assemble=0.002624 s solve(best)=0.023780 s solve(avg)=0.023780 s total=0.026493 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=2 --Nx=150
+Running baseline PCG+Identity: dim=2 n=(150,150,1) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 338 iterations, final residual = 7.98126e-13, tolerance = 1e-12
+  unknowns=22500 nnz=111900 iters=338 assemble=0.001834 s solve(best)=0.067225 s solve(avg)=0.067225 s total=0.069131 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=2 --Nx=200
+Running baseline PCG+Identity: dim=2 n=(200,200,1) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 450 iterations, final residual = 9.60832e-13, tolerance = 1e-12
+  unknowns=40000 nnz=199200 iters=450 assemble=0.003397 s solve(best)=0.181047 s solve(avg)=0.181047 s total=0.184594 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=3 --Nx=10
+Running baseline PCG+Identity: dim=3 n=(10,10,10) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 29 iterations, final residual = 7.19749e-13, tolerance = 1e-12
+  unknowns=1000 nnz=6400 iters=29 assemble=0.000238 s solve(best)=0.000605 s solve(avg)=0.000605 s total=0.000850 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=3 --Nx=15
+Running baseline PCG+Identity: dim=3 n=(15,15,15) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 48 iterations, final residual = 3.60913e-13, tolerance = 1e-12
+  unknowns=3375 nnz=22275 iters=48 assemble=0.000797 s solve(best)=0.003113 s solve(avg)=0.003113 s total=0.003938 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=3 --Nx=20
+Running baseline PCG+Identity: dim=3 n=(20,20,20) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 62 iterations, final residual = 9.18233e-13, tolerance = 1e-12
+  unknowns=8000 nnz=53600 iters=62 assemble=0.002965 s solve(best)=0.008722 s solve(avg)=0.008722 s total=0.011769 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+Running: dim=3 --Nx=25
+Running baseline PCG+Identity: dim=3 n=(25,25,25) tol=1e-12 maxit=500000 repeat=1 mu=1 c=0
+Converged in 80 iterations, final residual = 6.3183e-13, tolerance = 1e-12
+  unknowns=15625 nnz=105625 iters=80 assemble=0.003554 s solve(best)=0.021451 s solve(avg)=0.021451 s total=0.025089 s
+CSV row written to: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv
+
+Done.
+CSV: /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/baseline_identity_sweep.csv

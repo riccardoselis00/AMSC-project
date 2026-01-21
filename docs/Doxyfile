@@ -1,0 +1,24 @@
+# Project identity
+PROJECT_NAME           = "Domain Decomposition PDE Solver"
+
+# Where to write output
+OUTPUT_DIRECTORY       = docs/output
+
+# What to document
+INPUT                  = include src docs/mainpage.dox
+RECURSIVE              = YES
+
+# Extraction behavior
+EXTRACT_ALL            = YES
+EXTRACT_PRIVATE        = NO
+EXTRACT_STATIC         = YES
+
+# Output formats
+GENERATE_HTML          = YES
+GENERATE_LATEX         = NO
+
+# Diagrams (important for your project)
+HAVE_DOT               = YES
+CALL_GRAPH             = YES
+CALLER_GRAPH           = YES
+CLASS_DIAGRAMS         = YES

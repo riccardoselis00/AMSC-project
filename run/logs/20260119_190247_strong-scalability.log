@@ -1,0 +1,14 @@
+Running STRONG scaling: n=4000 prec=as2 nprocs=1
+Running STRONG scaling: n=4000 prec=as2 nprocs=8
+Running STRONG scaling: n=4000 prec=as2 nprocs=16
+Running STRONG scaling: n=8000 prec=as2 nprocs=1
+PCGSolverMPI: breakdown (p^T A p ~ 0)
+Running STRONG scaling: n=8000 prec=as2 nprocs=8
+Running STRONG scaling: n=8000 prec=as2 nprocs=16
+Running STRONG scaling: n=16000 prec=as2 nprocs=1
+Running STRONG scaling: n=16000 prec=as2 nprocs=8
+Running STRONG scaling: n=16000 prec=as2 nprocs=16
+Running STRONG scaling: n=32000 prec=as2 nprocs=1
+Running STRONG scaling: n=32000 prec=as2 nprocs=8
+Running STRONG scaling: n=32000 prec=as2 nprocs=16
+Done. Strong scaling results saved in /home/riccardo/Desktop/domain-decompositions/amsc-project/dd_project/data/output/csv/strong_scaling.csv

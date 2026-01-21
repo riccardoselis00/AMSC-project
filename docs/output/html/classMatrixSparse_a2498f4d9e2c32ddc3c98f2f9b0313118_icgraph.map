@@ -1,0 +1,7 @@
+<map id="MatrixSparse::nnz" name="MatrixSparse::nnz">
+<area shape="rect" id="Node000001" title=" " alt="" coords="220,42,359,67"/>
+<area shape="rect" id="Node000002" href="$classBlockRowPartitioner.html#a57a8c44ab40e4364a653c061e78063df" title=" " alt="" coords="12,5,165,45"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="206,45,165,39,166,34,207,40"/>
+<area shape="rect" id="Node000003" href="$classMatrixSparse.html#ad751b311c8c9c7bf83e5bee8a41f4cf4" title=" " alt="" coords="5,70,172,95"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="207,69,173,74,172,68,206,64"/>
+</map>

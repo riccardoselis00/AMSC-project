@@ -38,9 +38,9 @@ BASELINE_NP=1
 PROCS_AS2=(1 2 4 8 16)
 
 # ---- sizes ----
-SIZES_1D=(40000 80000 160000)
-SIZES_2D=("100,100" "200,200" "400,00")     # keep 1600^2 only if you really can
-SIZES_3D=("20,20,20" "40,40,40" "80,80,80") # 160^3 is huge; use only if ok
+SIZES_1D=(4000 8000 16000)
+SIZES_2D=("10,10" "20,20" "40,40")     # keep 1600^2 only if you really can
+SIZES_3D=("2,2,2" "4,4,4" "8,8,8") # 160^3 is huge; use only if ok
 
 # ============================================================
 # Difficulty knobs (IMPORTANT)

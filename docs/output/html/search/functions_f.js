@@ -1,0 +1,21 @@
+var searchData=
+[
+  ['scale_0',['scale',['../classMatrixCSR.html#a28750017fdeb52fefe833b4035040ec8',1,'MatrixCSR::scale()'],['../classMatrixDense.html#aef1036d5d3a7f05f86d5f76f64158efb',1,'MatrixDense::scale()'],['../classMatrixCOO.html#afc66f1b7bb9e11791236ff6b09a707a1',1,'MatrixCOO::scale()']]],
+  ['scoped_1',['Scoped',['../classScoped.html#a5f5716d075bcfcb8f3dbfb8ac99d2129',1,'Scoped']]],
+  ['setidentity_2',['setIdentity',['../classMatrixDense.html#afd122e5b49ad27254843ec6c728f1c6b',1,'MatrixDense']]],
+  ['setmaxiters_3',['setMaxIters',['../classSolver.html#a28e8f02f87e515124e4de30a0f898f48',1,'Solver']]],
+  ['setomega_4',['setOmega',['../classAdditiveSchwarz.html#a4d6a2b73d54023490c44c74f0eb0312b',1,'AdditiveSchwarz']]],
+  ['setpreconditioner_5',['setPreconditioner',['../classSolver.html#aaee3ea263919e825435d4290d9de21d6',1,'Solver']]],
+  ['setssorsweeps_6',['setSSORSweeps',['../classAdditiveSchwarz.html#a7ed26a67c39808ebe8f2528195ed9abf',1,'AdditiveSchwarz']]],
+  ['settolerance_7',['setTolerance',['../classSolver.html#a02305010b1d4fed1a4937376b276946f',1,'Solver']]],
+  ['setup_8',['setup',['../classAdditiveSchwarz.html#a7d02540ff62acbe3e7c927d805324771',1,'AdditiveSchwarz::setup()'],['../classBlockJacobi.html#ae2e17bb8b25c33eb05e640a1c5a9920d',1,'BlockJacobi::setup()'],['../classDiagonalJacobi.html#a978a51993157e0f3f2c194d9a42ed54a',1,'DiagonalJacobi::setup()'],['../classPreconditioner.html#a17628f2b2a6008bfa32f7c09b2c4501a',1,'Preconditioner::setup()']]],
+  ['setzero_9',['setZero',['../classMatrixDense.html#a2757548a72c6c16aaec5d38718ebe95c',1,'MatrixDense']]],
+  ['size_10',['size',['../classMatrixDense.html#a1131ab5224eb3e25abda89dd24dc916b',1,'MatrixDense::size()'],['../classBlockRowPartitioner.html#a0c9558640ae10f9c4d92390b42a4a538',1,'BlockRowPartitioner::size()'],['../classPCGSolverMPI.html#a239fd7a0036e0d6ff7f8e995978b298d',1,'PCGSolverMPI::size()']]],
+  ['solve_11',['solve',['../classPCGSolver.html#acae1be97c4af7c12b322c871d1bb4a8f',1,'PCGSolver::solve()'],['../classPCGSolverMPI.html#a7447bdfeea2f55f437b698acc30107a7',1,'PCGSolverMPI::solve()'],['../classSolver.html#a9534d5dd1edae0caa7edd3a9304f6f39',1,'Solver::solve()']]],
+  ['solve_5fdense_5fsym_5fpos_12',['solve_dense_sym_pos',['../additive__schwarz_8cpp.html#a1bb0b125ad4bb6e9603e027a95f7a59e',1,'additive_schwarz.cpp']]],
+  ['solver_13',['solver',['../classSolver.html#a5fe479e65f0ba8fdc4f4db70a404531e',1,'Solver::Solver()'],['../classPCGSolver.html#a5fe479e65f0ba8fdc4f4db70a404531e',1,'PCGSolver::Solver()']]],
+  ['ssor_5flocal_5fblock_14',['ssor_local_block',['../additive__schwarz_8cpp.html#aed26d939f7a69ad2dd8ed04ea54c24b0',1,'additive_schwarz.cpp']]],
+  ['start_15',['start',['../classTimer.html#a3a8b5272198d029779dc9302a54305a8',1,'Timer']]],
+  ['stop_16',['stop',['../classTimer.html#a988f79aa183d9d5473c13106f5babe48',1,'Timer']]],
+  ['summarize_5fand_5fexit_17',['summarize_and_exit',['../test__util_8hpp.html#a618a81cd04e0e7df9c4675532b30baaf',1,'test_util.hpp']]]
+];

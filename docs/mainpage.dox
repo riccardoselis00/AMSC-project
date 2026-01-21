@@ -1,0 +1,49 @@
+/**
+@mainpage Domain Decomposition PDE Solver
+
+@section intro Introduction
+
+This project implements a modular C++ framework for solving elliptic
+partial differential equations using finite-difference discretization
+and Krylov subspace methods.
+
+The main target is scalable solution of large sparse linear systems
+arising from Poisson-type problems in one, two, and three dimensions.
+
+@section methods Numerical Methods
+
+The continuous problem is discretized on structured grids using
+second-order finite differences, leading to symmetric positive definite
+linear systems.
+
+These systems are solved using the Conjugate Gradient method combined
+with several preconditioners:
+- Identity
+- SSOR
+- Additive Schwarz (one-level and two-level)
+
+@section parallel Parallelization Strategy
+
+Parallelism is achieved through domain decomposition.
+Each subdomain is assigned to an MPI process, with overlapping regions
+used to improve convergence.
+
+@section structure Code Structure
+
+- algebra/: sparse matrices and vectors
+- solver/: CG and PCG solvers
+- preconditioner/: domain decomposition methods
+- partitioner/: domain partitioning logic
+- utils/: timers and MPI utilities
+- apps/: executable test cases
+
+@section extend Extending the Framework
+
+The design allows easy extension by implementing new preconditioners
+or new PDE operators without modifying the solver core.
+
+@section refs References
+
+- Y. Saad, Iterative Methods for Sparse Linear Systems
+- A. Toselli, O. Widlund, Domain Decomposition Methods
+*/

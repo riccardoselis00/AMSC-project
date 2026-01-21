@@ -16,7 +16,7 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # -------- executable path (adjust if your target name differs) --------
 # Example: build/benches/bench_baseline_pcg_identity
-EXE_DEFAULT="${REPO_ROOT}/build/benches/bench_baseline_pcg_identity"
+EXE_DEFAULT="${REPO_ROOT}/build/benches/bench_baseline_identity_solver"
 EXE="${EXE:-$EXE_DEFAULT}"
 
 # -------- output CSV --------
@@ -37,9 +37,9 @@ DIMS=(${DIMS:-1 2 3})
 
 # "Nx list" used when you want isotropic grids: n=(Nx) or (Nx,Nx) or (Nx,Nx,Nx)
 # Choose sane values for 3D (unknowns grow as Nx^3).
-SIZES_1D=(${SIZES_1D:-2000 5000 10000 20000 40000})
-SIZES_2D=(${SIZES_2D:-50 100 150 200 250 300})
-SIZES_3D=(${SIZES_3D:-10 15 20 25 30 35})
+SIZES_1D=(${SIZES_1D:-2000 5000 10000})
+SIZES_2D=(${SIZES_2D:-50 100 150 200})
+SIZES_3D=(${SIZES_3D:-10 15 20 25})
 
 # Optional: explicit non-isotropic cases (uncomment and edit).
 # Format: "dim:nx,ny,nz"

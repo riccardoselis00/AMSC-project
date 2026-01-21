@@ -1,0 +1,28 @@
+var searchData=
+[
+  ['scalar_0',['scalar',['../pde_8hpp.html#a8c2981f3f834be9448a6ab06c28748eb',1,'Scalar:&#160;pde.hpp'],['../diagonal__jacobi_8cpp.html#a18110b2ec23b448eb20c00f897cd0d28',1,'Scalar:&#160;diagonal_jacobi.cpp'],['../classMatrixCOO.html#ab1ac820df7172bf8329ffb4bb037bacf',1,'MatrixCOO::Scalar'],['../classMatrixCSR.html#a81aa376e5d00f1878ec41c501c43b19a',1,'MatrixCSR::Scalar'],['../classMatrixDense.html#aca0c193891028c71619a137596baafca',1,'MatrixDense::Scalar'],['../classMatrixSparse.html#a71f99ca939a960299f43d68834ed821f',1,'MatrixSparse::Scalar'],['../classAdditiveSchwarz.html#a7d0b53338a55890e2f9b0f47bf594a40',1,'AdditiveSchwarz::Scalar'],['../classPreconditioner.html#abf7f8ac552b802c66a5332c0adc0f9b1',1,'Preconditioner::Scalar'],['../classPCGSolver.html#a6954883e0e62d7d69b0eec311562044a',1,'PCGSolver::Scalar'],['../classPCGSolverMPI.html#aa45dc9b39a25ff097fc1b4d4b618d63e',1,'PCGSolverMPI::Scalar'],['../classSolver.html#acddff63c2582226febad6db8f48c6b0b',1,'Solver::Scalar'],['../classIdentityPreconditioner.html#abf7f8ac552b802c66a5332c0adc0f9b1',1,'IdentityPreconditioner::Scalar']]],
+  ['scale_1',['scale',['../classMatrixDense.html#aef1036d5d3a7f05f86d5f76f64158efb',1,'MatrixDense::scale()'],['../classMatrixCSR.html#a28750017fdeb52fefe833b4035040ec8',1,'MatrixCSR::scale()'],['../classMatrixCOO.html#afc66f1b7bb9e11791236ff6b09a707a1',1,'MatrixCOO::scale()']]],
+  ['scoped_2',['scoped',['../classScoped.html#a5f5716d075bcfcb8f3dbfb8ac99d2129',1,'Scoped::Scoped()'],['../classScoped.html',1,'Scoped']]],
+  ['setidentity_3',['setIdentity',['../classMatrixDense.html#afd122e5b49ad27254843ec6c728f1c6b',1,'MatrixDense']]],
+  ['setmaxiters_4',['setMaxIters',['../classSolver.html#a28e8f02f87e515124e4de30a0f898f48',1,'Solver']]],
+  ['setomega_5',['setOmega',['../classAdditiveSchwarz.html#a4d6a2b73d54023490c44c74f0eb0312b',1,'AdditiveSchwarz']]],
+  ['setpreconditioner_6',['setPreconditioner',['../classSolver.html#aaee3ea263919e825435d4290d9de21d6',1,'Solver']]],
+  ['setssorsweeps_7',['setSSORSweeps',['../classAdditiveSchwarz.html#a7ed26a67c39808ebe8f2528195ed9abf',1,'AdditiveSchwarz']]],
+  ['settolerance_8',['setTolerance',['../classSolver.html#a02305010b1d4fed1a4937376b276946f',1,'Solver']]],
+  ['setup_9',['setup',['../classBlockJacobi.html#ae2e17bb8b25c33eb05e640a1c5a9920d',1,'BlockJacobi::setup()'],['../classPreconditioner.html#a17628f2b2a6008bfa32f7c09b2c4501a',1,'Preconditioner::setup()'],['../classDiagonalJacobi.html#a978a51993157e0f3f2c194d9a42ed54a',1,'DiagonalJacobi::setup()'],['../classAdditiveSchwarz.html#a7d02540ff62acbe3e7c927d805324771',1,'AdditiveSchwarz::setup()']]],
+  ['setzero_10',['setZero',['../classMatrixDense.html#a2757548a72c6c16aaec5d38718ebe95c',1,'MatrixDense']]],
+  ['size_11',['size',['../classMatrixDense.html#a1131ab5224eb3e25abda89dd24dc916b',1,'MatrixDense::size()'],['../classBlockRowPartitioner.html#a0c9558640ae10f9c4d92390b42a4a538',1,'BlockRowPartitioner::size()'],['../classPCGSolverMPI.html#a239fd7a0036e0d6ff7f8e995978b298d',1,'PCGSolverMPI::size()']]],
+  ['solve_12',['solve',['../classPCGSolver.html#acae1be97c4af7c12b322c871d1bb4a8f',1,'PCGSolver::solve()'],['../classPCGSolverMPI.html#a7447bdfeea2f55f437b698acc30107a7',1,'PCGSolverMPI::solve()'],['../classSolver.html#a9534d5dd1edae0caa7edd3a9304f6f39',1,'Solver::solve()']]],
+  ['solve_5fdense_5fsym_5fpos_13',['solve_dense_sym_pos',['../additive__schwarz_8cpp.html#a1bb0b125ad4bb6e9603e027a95f7a59e',1,'additive_schwarz.cpp']]],
+  ['solver_14',['solver',['../index.html',1,'Domain Decomposition PDE Solver'],['../classSolver.html',1,'Solver'],['../classPCGSolver.html#a5fe479e65f0ba8fdc4f4db70a404531e',1,'PCGSolver::Solver()'],['../classSolver.html#a5fe479e65f0ba8fdc4f4db70a404531e',1,'Solver::Solver()']]],
+  ['solver_2ecpp_15',['solver.cpp',['../solver_8cpp.html',1,'']]],
+  ['solver_2ehpp_16',['solver.hpp',['../solver_8hpp.html',1,'']]],
+  ['solverconfig_17',['SolverConfig',['../structSolverConfig.html',1,'']]],
+  ['sparseformat_18',['SparseFormat',['../matrixSparse_8hpp.html#a0960868240b896b2b13d3f8851f1edbc',1,'matrixSparse.hpp']]],
+  ['ssor_5flocal_5fblock_19',['ssor_local_block',['../additive__schwarz_8cpp.html#aed26d939f7a69ad2dd8ed04ea54c24b0',1,'additive_schwarz.cpp']]],
+  ['start_20',['start',['../classTimer.html#a3a8b5272198d029779dc9302a54305a8',1,'Timer']]],
+  ['stop_21',['stop',['../classTimer.html#a988f79aa183d9d5473c13106f5babe48',1,'Timer']]],
+  ['strategy_22',['Parallelization Strategy',['../index.html#parallel',1,'']]],
+  ['structure_23',['Code Structure',['../index.html#structure',1,'']]],
+  ['summarize_5fand_5fexit_24',['summarize_and_exit',['../test__util_8hpp.html#a618a81cd04e0e7df9c4675532b30baaf',1,'test_util.hpp']]]
+];

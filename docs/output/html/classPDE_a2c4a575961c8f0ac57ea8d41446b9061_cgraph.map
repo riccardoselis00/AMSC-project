@@ -1,0 +1,13 @@
+<map id="PDE::assembleCOO" name="PDE::assembleCOO">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,80,153,105"/>
+<area shape="rect" id="Node000002" href="$classMatrixCOO.html#acb85537d1a3ee09576d4cd582ec745e3" title=" " alt="" coords="215,5,341,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,77,200,40,221,32,222,37,202,44,110,82"/>
+<area shape="rect" id="Node000003" href="$classPDE.html#a75b11136b0b18065e91f336ec102a7ad" title=" " alt="" coords="201,55,355,80"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="153,81,187,76,188,81,154,86"/>
+<area shape="rect" id="Node000004" href="$pde_8cpp.html#aa924b0718ea41510d67dd92f166d6a9f" title=" " alt="" coords="244,104,312,129"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="154,99,230,108,230,114,153,104"/>
+<area shape="rect" id="Node000005" href="$classMatrixCOO.html#af45633ac921e7146dd956034239379a6" title=" " alt="" coords="203,153,353,179"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="112,103,202,138,225,146,224,151,200,143,110,108"/>
+<area shape="rect" id="Node000006" href="$classMatrixCOO.html#a0a522276b0ce8dd89c9caacb818a85b3" title=" " alt="" coords="403,153,527,179"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="354,163,389,163,389,169,354,169"/>
+</map>
