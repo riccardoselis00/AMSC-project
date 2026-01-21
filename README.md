@@ -140,7 +140,7 @@ You can also find results of perfomance and correctness in `.csv`
 cd data/output/csv
 ```
 # Report 
-You can find the report of the project `report.pdf`
+You can find the report of the project `report.pdf`, references and **doxygen documentation**
 ```
 cd docs
 ```
