@@ -42,11 +42,6 @@ SIZES_1D=(4000 8000 16000)
 SIZES_2D=("10,10" "20,20" "40,40")     # keep 1600^2 only if you really can
 SIZES_3D=("2,2,2" "4,4,4" "8,8,8") # 160^3 is huge; use only if ok
 
-# ============================================================
-# Difficulty knobs (IMPORTANT)
-# We want: identity harder in 2D/3D so AS2 becomes effective.
-# Best knob: strong diffusion contrast with mu(x).
-# ============================================================
 
 # Default forcing
 F_TYPE="${F_TYPE:-const}"
