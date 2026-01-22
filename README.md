@@ -62,6 +62,7 @@ The repository also includes ready-to-run benchmark scripts that reproduce the e
 ├── tests
     ├──  ... all unit/integration tests to verify correctness
 └── tools
+    ├──  ... all the tools i developed for post-processing
 ```
 
 
@@ -93,7 +94,6 @@ mkdir -p build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make -j
-ctest 
 ````
 
 **Configuration options (as reported by CMake):**
@@ -110,9 +110,17 @@ This generates the core static library (`libdd_algebra.a`) and the project execu
 * Benches: `bench_pcg_sequential`, `bench_seq_as_blocks`, `bench_mpi_as_coarse`, `physical_problem`,
   `bench_baseline_identity_solver`, `bench_final_identity_vs_AS2`
 
-### Run benchmarks (recommended)
 
-After building, go back to the repository root and execute the provided runner script:
+### Run Tests
+
+```bash
+cd build
+ctest
+```
+
+### Run benchmarks 
+
+After building, go back to the **repository root** and execute the provided runner script:
 
 ```bash
 cd ..
@@ -144,3 +152,12 @@ You can find the report of the project `report.pdf`, references and **doxygen do
 ```
 cd docs
 ```
+
+### tools for postprocessing `.py`
+
+From the root project
+```bash
+cd tools
+ls
+```
+You can seee all the tools that i developed for postprocessing. Cause of requirements library and different paths i'll show during the project presentations.
