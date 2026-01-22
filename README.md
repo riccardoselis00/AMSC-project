@@ -147,10 +147,15 @@ You can also find results of perfomance and correctness in `.csv`
 ```
 cd data/output/csv
 ```
-# Report 
+# Report and documentation
 You can find the report of the project `report.pdf`, references and **doxygen documentation**
 ```
 cd docs
+```
+You can open doxygen documentation from firefox (or your `.html` reader) from the root
+
+```bash
+firefox docs/output/html/index.html
 ```
 
 ### tools for postprocessing `.py`
